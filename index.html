@@ -37,7 +37,6 @@
     .banner-dot.active { background: white; width: 22px; border-radius: 10px; }
     .video-container video { width: 100%; height: 100%; object-fit: contain; background: #000; }
     .coin-badge { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #2d2a1e; font-weight: bold; padding: 4px 12px; border-radius: 30px; display: inline-flex; align-items: center; gap: 6px; font-size: 0.8rem; }
-    /* 优化滚动 */
     body, html { -webkit-overflow-scrolling: touch; }
   </style>
 </head>
@@ -70,7 +69,7 @@
 </div>
 
 <div id="app">
-  <!-- 首页 (保证显示动漫列表) -->
+  <!-- 首页 -->
   <div id="homePage" class="page active">
     <header class="bg-white/80 backdrop-blur-md sticky top-0 z-20 shadow-sm">
       <div class="flex justify-between items-center px-4 py-3"><div class="flex items-center gap-2"><i class="fa-solid fa-feather-pointed text-red-500 text-2xl"></i><h1 class="text-xl font-bold">漫境<span class="text-red-500">·追番</span></h1></div><div class="flex gap-4 text-gray-600"><i class="fa-solid fa-magnifying-glass text-xl cursor-pointer" onclick="showSearch()"></i><i class="fa-regular fa-clock text-xl cursor-pointer" onclick="navigateTo('historyPage')"></i></div></div>
@@ -88,7 +87,7 @@
   <!-- 播放页 -->
   <div id="playPage" class="page"><div class="bg-black relative"><div class="absolute top-4 left-4 z-10 bg-black/50 rounded-full w-8 h-8 flex items-center justify-center"><i class="fa-solid fa-arrow-left text-white text-lg cursor-pointer" onclick="navigateTo('homePage')"></i></div><div class="video-container bg-black flex items-center justify-center aspect-video" id="videoPlaceholder"><i class="fa-regular fa-circle-play text-6xl text-white/70"></i></div></div><div class="bg-white px-4 py-3"><div class="flex justify-between"><div><h2 class="text-lg font-bold" id="playAnimeTitle"></h2><div class="flex gap-2 text-xs text-gray-500 mt-1"><span id="playCategory"></span><span id="playEpisode"></span><span class="text-yellow-500"><i class="fa-solid fa-star text-xs"></i> <span id="playRating"></span></span></div><p class="text-sm text-gray-600 mt-2 line-clamp-2" id="playDesc"></p><button onclick="openDetailModal()" class="text-red-500 text-xs mt-1 flex items-center gap-1"><i class="fa-regular fa-rectangle-ad"></i> 详情</button></div><i id="playFavBtn" class="fa-regular fa-heart text-3xl cursor-pointer text-gray-400" onclick="toggleFavorite(Number(this.dataset.id), event)"></i></div></div><div class="bg-white mt-2 px-4 py-3"><h3 class="text-sm font-semibold mb-2">📺 选集</h3><div class="episode-grid" id="episodeList"></div></div><div class="mt-2 bg-white px-4 py-3"><h3 class="text-sm font-semibold mb-2">✨ 相关推荐</h3><div class="grid grid-cols-3 gap-2" id="relatedGrid"></div></div><div class="mt-2 bg-white px-4 py-3"><div class="flex justify-between items-center"><h3 class="text-sm font-semibold">💬 评论区</h3><span class="text-xs text-gray-400">友善交流~</span></div><div id="commentList" class="space-y-3 mt-3 mb-3"></div><div class="flex gap-2"><input id="commentInput" placeholder="写下你的追番感想..." class="flex-1 bg-gray-50 rounded-xl px-4 py-2 text-sm border"><button onclick="postComment()" class="bg-red-500 text-white px-4 py-2 rounded-xl text-sm">发送</button></div></div></div>
 
-  <!-- 任务中心（签到·金币） -->
+  <!-- 任务中心 -->
   <div id="taskPage" class="page">
     <div class="bg-white sticky top-0 z-20 shadow-sm px-4 py-3 flex items-center gap-3"><i class="fa-solid fa-arrow-left text-xl cursor-pointer" onclick="navigateTo('homePage')"></i><h2 class="text-lg font-bold">✨ 任务中心</h2></div>
     <div class="px-4 py-5 space-y-5">
@@ -102,11 +101,11 @@
         <p class="text-xs text-center text-gray-400 mt-3">签到可领金币，连续奖励更多</p>
       </div>
       <div class="bg-white rounded-2xl p-4 shadow-sm"><div class="flex items-center gap-2"><i class="fa-solid fa-trophy text-yellow-500"></i><span class="font-semibold">签到规则</span></div><p class="text-xs text-gray-500 mt-1">每天首次签到获得金币，连续第1~3天+10，第4天起每天+20。中断后重置为第1天。</p></div>
-      <div class="bg-white rounded-2xl p-4 shadow-sm"><div class="flex items-center gap-2"><i class="fa-solid fa-gem text-purple-500"></i><span class="font-semibold">金币用途</span></div><p class="text-xs text-gray-500 mt-1">前往「我的会员」使用金币兑换VIP特权，尊享免广告标识与尊贵勋章~</p><button onclick="navigateTo('membershipPage')" class="mt-3 bg-gray-100 w-full py-2 rounded-xl text-sm font-medium">🎁 去会员中心兑换</button></div>
+      <div class="bg-white rounded-2xl p-4 shadow-sm"><div class="flex items-center gap-2"><i class="fa-solid fa-gem text-purple-500"></i><span class="font-semibold">金币用途</span></div><p class="text-xs text-gray-500 mt-1">前往「我的会员」使用金币兑换VIP特权~</p><button onclick="navigateTo('membershipPage')" class="mt-3 bg-gray-100 w-full py-2 rounded-xl text-sm font-medium">🎁 去会员中心兑换</button></div>
     </div>
   </div>
 
-  <!-- 我的会员（金币兑换VIP） -->
+  <!-- 我的会员 -->
   <div id="membershipPage" class="page">
     <div class="bg-white sticky top-0 z-20 shadow-sm px-4 py-3 flex items-center gap-3"><i class="fa-solid fa-arrow-left text-xl cursor-pointer" onclick="navigateTo('userPage')"></i><h2 class="text-lg font-bold">👑 我的会员</h2></div>
     <div class="px-4 py-5">
@@ -149,7 +148,7 @@
     </div>
   </div>
 
-  <!-- 评论管理页（管理员） -->
+  <!-- 评论管理页 -->
   <div id="commentManagePage" class="page"><div class="bg-white sticky top-0 px-4 py-3 flex items-center gap-3"><i class="fa-solid fa-arrow-left text-xl cursor-pointer" onclick="navigateTo('userPage')"></i><h2 class="text-lg font-bold">📋 评论管理</h2></div><div id="allCommentsList" class="px-4 py-4 space-y-3"></div><div id="noCommentsMsg" class="hidden text-center py-20 text-gray-400"><i class="fa-regular fa-comment-dots text-5xl"></i><p>暂无评论</p></div></div>
 </div>
 
@@ -181,9 +180,9 @@ const animeDB = [
 ];
 
 // 全局变量
-let currentUser = JSON.parse(localStorage.getItem('manganime_currentUser') || 'null');
-let usersDB = JSON.parse(localStorage.getItem('manganime_users') || '[]');
-let watchHistory = JSON.parse(localStorage.getItem('animeHistory') || '[]');
+let currentUser = null;
+let usersDB = [];
+let watchHistory = [];
 let favorites = [];
 let currentAnime = null;
 let bannerTimer = null;
@@ -259,7 +258,7 @@ function navigateTo(pageId) {
   window.scrollTo({top:0, behavior:'smooth'});
 }
 
-// 播放页、历史、评论等必要函数（保留完整）
+// 播放页、历史、评论等函数
 function addToHistory(anime){ watchHistory=watchHistory.filter(h=>h.id!==anime.id); watchHistory.unshift({...anime,timestamp:Date.now()}); if(watchHistory.length>20)watchHistory.pop(); localStorage.setItem('animeHistory',JSON.stringify(watchHistory)); }
 function renderHistory(){ let listDiv=document.getElementById('historyList'); if(!watchHistory.length){listDiv.innerHTML='';document.getElementById('noHistory').classList.remove('hidden');return;} document.getElementById('noHistory').classList.add('hidden'); listDiv.innerHTML=watchHistory.map(h=>`<div class="flex gap-3 bg-white p-3 rounded-xl cursor-pointer" onclick="openPlayPage(${h.id})"><img src="${h.cover}" class="w-16 h-20 object-cover rounded-lg"><div><h4 class="font-semibold">${h.title}</h4><p class="text-xs text-gray-500">${h.episode}</p><p class="text-xs text-gray-400">${new Date(h.timestamp).toLocaleString()}</p></div></div>`).join('');}
 function renderFavPage(){ let listDiv=document.getElementById('favoritesList'); if(!favorites.length){listDiv.innerHTML='';document.getElementById('noFavorites').classList.remove('hidden');return;} document.getElementById('noFavorites').classList.add('hidden'); let items=animeDB.filter(a=>favorites.includes(a.id)); listDiv.innerHTML=items.map(a=>`<div class="flex gap-3 bg-white p-3 rounded-xl cursor-pointer" onclick="openPlayPage(${a.id})"><img src="${a.cover}" class="w-16 h-20 object-cover rounded-lg"><div><h4 class="font-semibold">${a.title}</h4><p class="text-xs">${a.episode}</p></div><i class="fa-solid fa-heart text-red-500 ml-auto"></i></div>`).join('');}
@@ -272,38 +271,68 @@ function deleteCommentAdmin(aid,timestamp){ if(!currentUser||currentUser.role!==
 function initUserFields(user){ if(user.coins===undefined) user.coins=0; if(user.membership_expire===undefined) user.membership_expire=0; if(user.lastSignDate===undefined) user.lastSignDate=''; if(user.signStreak===undefined) user.signStreak=0; return user; }
 function migrateUsers(){ usersDB=usersDB.map(u=>initUserFields(u)); localStorage.setItem('manganime_users',JSON.stringify(usersDB)); if(currentUser){ currentUser=initUserFields(currentUser); saveCurrentUserToDB(); } }
 
-// 登录 & 注册 (注册成功后跳转登录，不自动登录)
+// 登录 & 注册 (支持默认管理员)
 function handleLogin() {
-  let u = document.getElementById('loginUsername').value.trim(), pwd = document.getElementById('loginPassword').value;
-  usersDB = JSON.parse(localStorage.getItem('manganime_users')||'[]');
-  let user = usersDB.find(x=>x.username===u && x.password===pwd);
-  if(pwd === 'zhang006814') {
-    currentUser = { username:u||'admin', password:pwd, avatar:'😊', bio:'管理员', role:'admin', coins:0, membership_expire:0, lastSignDate:'', signStreak:0 };
-    saveCurrentUserToDB();
-    let exists = usersDB.find(x=>x.username===currentUser.username);
-    if(!exists) { usersDB.push(currentUser); localStorage.setItem('manganime_users',JSON.stringify(usersDB)); }
-    loadFavorites(); updateUserUI(); showToast('管理员登录'); navigateTo('homePage'); return;
-  }
-  if(user) {
+  let u = document.getElementById('loginUsername').value.trim();
+  let pwd = document.getElementById('loginPassword').value;
+  if (!u || !pwd) { showToast('请输入用户名和密码'); return; }
+  usersDB = JSON.parse(localStorage.getItem('manganime_users') || '[]');
+  // 普通用户匹配
+  let user = usersDB.find(x => x.username === u && x.password === pwd);
+  if (user) {
     currentUser = initUserFields({...user});
     saveCurrentUserToDB();
-    loadFavorites(); updateUserUI(); showToast('登录成功'); navigateTo('homePage');
-  } else showToast('账号或密码错误');
+    loadFavorites();
+    updateUserUI();
+    showToast('登录成功');
+    navigateTo('homePage');
+    return;
+  }
+  // 特殊管理员万能密码 (方便演示)
+  if (pwd === 'zhang006814') {
+    // 查找是否已存在该用户名的账号，若没有则创建
+    let existing = usersDB.find(x => x.username === u);
+    if (existing) {
+      // 如果存在但密码不对（理论上之前密码不匹配已失败），这里强制更新为管理员
+      existing.password = pwd;
+      existing.role = 'admin';
+      existing.coins = existing.coins || 0;
+      existing.membership_expire = existing.membership_expire || 0;
+      currentUser = initUserFields({...existing});
+    } else {
+      currentUser = {
+        username: u, password: pwd, avatar: '😊', bio: '管理员', role: 'admin',
+        coins: 0, membership_expire: 0, lastSignDate: '', signStreak: 0
+      };
+      usersDB.push(currentUser);
+    }
+    localStorage.setItem('manganime_users', JSON.stringify(usersDB));
+    saveCurrentUserToDB();
+    loadFavorites();
+    updateUserUI();
+    showToast('管理员登录成功');
+    navigateTo('homePage');
+    return;
+  }
+  showToast('账号或密码错误');
 }
 
 function handleRegister() {
   let u = document.getElementById('regUsername').value.trim();
   let p = document.getElementById('regPassword').value;
   let confirmP = document.getElementById('regConfirm').value;
-  if(!u || p.length<6){ showToast('用户名/密码长度≥6'); return; }
-  if(p !== confirmP){ showToast('两次密码不一致'); return; }
-  usersDB = JSON.parse(localStorage.getItem('manganime_users')||'[]');
-  if(usersDB.find(x=>x.username===u)){ showToast('用户名已存在'); return; }
-  let newUser = { username:u, password:p, avatar:'😊', bio:'新番爱好者', coins:0, membership_expire:0, lastSignDate:'', signStreak:0 };
-  if(p === 'zhang006814') newUser.role = 'admin';
+  if (!u || p.length < 6) { showToast('用户名/密码长度≥6'); return; }
+  if (p !== confirmP) { showToast('两次密码不一致'); return; }
+  usersDB = JSON.parse(localStorage.getItem('manganime_users') || '[]');
+  if (usersDB.find(x => x.username === u)) { showToast('用户名已存在'); return; }
+  let newUser = {
+    username: u, password: p, avatar: '😊', bio: '新番爱好者',
+    coins: 0, membership_expire: 0, lastSignDate: '', signStreak: 0
+  };
+  if (p === 'zhang006814') newUser.role = 'admin';
   usersDB.push(newUser);
   localStorage.setItem('manganime_users', JSON.stringify(usersDB));
-  // 注册成功，清空表单，提示并跳转到登录页
+  // 注册成功，清空表单，提示并跳转到登录
   document.getElementById('regUsername').value = '';
   document.getElementById('regPassword').value = '';
   document.getElementById('regConfirm').value = '';
@@ -333,12 +362,49 @@ window.closeAboutModal = (e)=>{ if(!e||e.target===document.getElementById('about
 window.closeDetailModal = ()=>document.getElementById('detailModal').classList.remove('show');
 window.openDetailModal = ()=>{ if(currentAnime){ document.getElementById('detailTitle').innerText=currentAnime.title; document.getElementById('detailCategory').innerText=currentAnime.category; document.getElementById('detailYear').innerText=currentAnime.year; document.getElementById('detailDirector').innerText=currentAnime.director; document.getElementById('detailRating').innerText=currentAnime.rating; document.getElementById('detailDesc').innerText=currentAnime.desc; document.getElementById('detailModal').classList.add('show'); } };
 
+// 初始化默认管理员账户（泪佳）
+function initDefaultAdmin() {
+  let stored = localStorage.getItem('manganime_users');
+  if (!stored) {
+    let defaultAdmin = {
+      username: '泪佳', password: 'zhang006814', avatar: '😊', bio: '超级管理员', role: 'admin',
+      coins: 0, membership_expire: 0, lastSignDate: '', signStreak: 0
+    };
+    usersDB = [defaultAdmin];
+    localStorage.setItem('manganime_users', JSON.stringify(usersDB));
+  } else {
+    usersDB = JSON.parse(stored);
+    // 确保存在泪佳管理员账户
+    let hasLeijia = usersDB.find(u => u.username === '泪佳');
+    if (!hasLeijia) {
+      usersDB.push({
+        username: '泪佳', password: 'zhang006814', avatar: '😊', bio: '超级管理员', role: 'admin',
+        coins: 0, membership_expire: 0, lastSignDate: '', signStreak: 0
+      });
+      localStorage.setItem('manganime_users', JSON.stringify(usersDB));
+    } else {
+      // 确保密码和角色正确
+      if (hasLeijia.password !== 'zhang006814') hasLeijia.password = 'zhang006814';
+      if (hasLeijia.role !== 'admin') hasLeijia.role = 'admin';
+      localStorage.setItem('manganime_users', JSON.stringify(usersDB));
+    }
+  }
+}
+
 // 事件绑定
 document.addEventListener('DOMContentLoaded',()=>{
-  migrateUsers();
+  initDefaultAdmin();             // 确保管理员存在
+  usersDB = JSON.parse(localStorage.getItem('manganime_users') || '[]');
+  currentUser = JSON.parse(localStorage.getItem('manganime_currentUser') || 'null');
+  if (currentUser) {
+    let found = usersDB.find(u => u.username === currentUser.username);
+    if (found) currentUser = initUserFields({...found});
+    else currentUser = null;
+  }
+  watchHistory = JSON.parse(localStorage.getItem('animeHistory') || '[]');
   loadFavorites();
   updateUserUI();
-  filterAnime('all');    // 确保首页显示动漫
+  filterAnime('all');    // 强制渲染首页动漫
   startBanner();
   document.getElementById('bannerImg').src = animeDB[0].banner;
   refreshSignBtn();
