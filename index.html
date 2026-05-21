@@ -88,9 +88,11 @@ function updateFavIcons(){ document.querySelectorAll('.fav-icon').forEach(icon=>
 
 // ---------- 云端评论操作 ----------
 async function loadComments(anime_id) {
-  let { data, error } = await supabase.from('comments').select('*').eq('anime_id', anime_id).order('created_at', { ascending: true });
-  if(error) return [];
-  return data;
+  try {
+    let { data, error } = await supabase.from('comments').select('*').eq('anime_id', anime_id).order('created_at', { ascending: true });
+    if(error) return [];
+    return data;
+  } catch(e) { return []; }
 }
 async function addComment(anime_id, username, content) {
   await supabase.from('comments').insert({ anime_id, username, content, created_at: Date.now() });
@@ -127,9 +129,11 @@ async function postComment() {
 
 // ---------- 用户云端操作 ----------
 async function loadUser(username) {
-  let { data, error } = await supabase.from('users').select('*').eq('username', username).single();
-  if(error) return null;
-  return data;
+  try {
+    let { data, error } = await supabase.from('users').select('*').eq('username', username).single();
+    if(error) return null;
+    return data;
+  } catch(e) { return null; }
 }
 async function saveUser(user) {
   await supabase.from('users').upsert({
@@ -448,31 +452,36 @@ function startBanner() { let idx=0; function update(){ let b=animeDB[idx%animeDB
 
 // 初始化
 document.addEventListener('DOMContentLoaded', async () => {
+  // 1. 先渲染动漫列表（确保首页立即有内容）
+  renderAnimeList('all');
+  startBanner();
+  // 2. 初始化本地管理员数据
   initDefaultAdmin();
-  usersDB=JSON.parse(localStorage.getItem('manganime_users')||'[]');
-  let storedUser=JSON.parse(localStorage.getItem('manganime_currentUser')||'null');
+  usersDB = JSON.parse(localStorage.getItem('manganime_users')||'[]');
+  let storedUser = JSON.parse(localStorage.getItem('manganime_currentUser')||'null');
   if(storedUser){
     let found=usersDB.find(u=>u.username===storedUser.username);
     if(found) currentUser={...found};
     else currentUser=null;
   }
+  // 3. 异步加载云端用户数据（不阻塞页面）
   if(currentUser){
-    let cloud = await loadUser(currentUser.username);
-    if(cloud && cloud.password === currentUser.password) {
-      currentUser = cloud;
-      currentUser.lastSignDate = currentUser.last_sign_date;
-      currentUser.signStreak = currentUser.sign_streak;
-    }
+    try {
+      let cloud = await loadUser(currentUser.username);
+      if(cloud && cloud.password === currentUser.password) {
+        currentUser = cloud;
+        currentUser.lastSignDate = currentUser.last_sign_date;
+        currentUser.signStreak = currentUser.sign_streak;
+      }
+    } catch(e) { console.warn("云端加载失败，使用本地数据"); }
   }
-  watchHistory=JSON.parse(localStorage.getItem('animeHistory')||'[]');
+  watchHistory = JSON.parse(localStorage.getItem('animeHistory')||'[]');
   loadFav();
   loadGiftCodes();
   updateUserUI();
-  renderAnimeList('all');
-  startBanner();
   refreshSignBtn();
 
-  // 事件绑定
+  // 事件绑定（与之前相同）
   document.querySelectorAll('.back-home').forEach(el=>el.addEventListener('click',()=>navigateTo('homePage')));
   document.querySelectorAll('.back-user').forEach(el=>el.addEventListener('click',()=>navigateTo('userPage')));
   document.getElementById('searchIcon')?.addEventListener('click',()=>navigateTo('searchPage'));
