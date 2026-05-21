@@ -412,17 +412,18 @@ function openPlay(id){
   let related = animeDB.filter(a => a.id !== id && a.category === anime.category).slice(0,4);
   document.getElementById('relatedGrid').innerHTML = related.map(a => `<div class="cursor-pointer" data-id="${a.id}"><img src="${a.cover}" class="w-full aspect-[3/4] object-cover rounded-lg"><p class="text-xs truncate mt-1">${a.title}</p></div>`).join('');
   document.querySelectorAll('#relatedGrid .cursor-pointer').forEach(el => el.addEventListener('click', () => openPlay(parseInt(el.dataset.id))));
-  
+
   loadGiscus();
 }
 
+// ==================== Giscus 评论配置（已修正） ====================
 function loadGiscus() {
   const container = document.getElementById('giscus-container');
   if (!container) return;
   container.innerHTML = '';
   const script = document.createElement('script');
   script.src = "https://giscus.app/client.js";
-  script.setAttribute("data-repo", "Jia-wen688/mengzhiyin-jingman");
+  script.setAttribute("data-repo", "MZY-leijia/mengzhiyin-jingman");
   script.setAttribute("data-repo-id", "R_kgDOSjZoQw");
   script.setAttribute("data-category", "Announcements");
   script.setAttribute("data-category-id", "DIC_kwDOSjZoQ84C9hov");
