@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
-  <title>漫境 · 追番乐园</title>
+  <title>漫境 · 追番乐园（本地存储版）</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
@@ -96,7 +96,7 @@
 </footer>
 
 <script>
-// ---------- 动漫数据 ----------
+// ==================== 动漫数据 ====================
 const animeDB = [
   { id:1, title:'脱离了A级队伍的我...', category:'日漫', episode:'更新至24话', totalEp:24, rating:9.0, desc:'红魔导士优克脱离队伍后与美少女徒弟再战迷宫', cover:'https://picsum.photos/400/533?random=1', banner:'https://picsum.photos/800/350?random=101', director:'小野勝巳', year:'2025' },
   { id:2, title:'鬼灭之刃 游郭篇', category:'日漫', episode:'全11话', totalEp:11, rating:9.5, desc:'音柱对决上弦之鬼', cover:'https://picsum.photos/400/533?random=2', banner:'https://picsum.photos/800/350?random=102', director:'外崎春雄', year:'2021' },
@@ -111,14 +111,6 @@ const animeDB = [
   { id:11, title:'天气之子', category:'剧场', episode:'剧场版', totalEp:1, rating:8.9, desc:'晴天少女', cover:'https://picsum.photos/400/533?random=11', banner:'https://picsum.photos/800/350?random=111', director:'新海诚', year:'2019' },
   { id:12, title:'进击的巨人', category:'日漫', episode:'完结', totalEp:87, rating:9.9, desc:'自由与地鸣', cover:'https://picsum.photos/400/533?random=12', banner:'https://picsum.photos/800/350?random=112', director:'林祐一郎', year:'2013' }
 ];
-
-// ==================== Supabase 配置（可选，不影响基础功能） ====================
-let supabase = null;
-try {
-  const SUPABASE_URL = "https://cifkuhaxpbrfgwmlvstp.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNpZmt1aGF4cGJyZmd3bWx2c3RwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzMzU4NDIsImV4cCI6MjA5NDkxMTg0Mn0.G9LvKJC_Eb5exh8ldn4a4v1gcvequH0Ec66VxNSKuH4";
-  supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-} catch(e) { console.warn("Supabase 初始化失败"); }
 
 // ==================== 全局变量 ====================
 let currentUser = null;
@@ -149,23 +141,79 @@ function toggleFav(id){ if(!currentUser){showToast('请先登录');return;} let 
 function updateFavIcons(){ document.querySelectorAll('.fav-icon').forEach(icon=>{ let id=Number(icon.dataset.id); icon.className=favorites.includes(id)?'fav-icon fa-solid fa-heart absolute top-2 right-2 text-xl text-red-500':'fav-icon fa-regular fa-heart absolute top-2 right-2 text-xl text-white'; }); }
 function isUserVip(username) { let user = usersDB.find(u => u.username === username); if (!user) return false; let expire = user.membership_expire || 0; return expire > Date.now(); }
 
-// ==================== 云端评论操作（全部静默，不阻塞） ====================
-async function loadComments(anime_id) { if (!supabase) return []; try { let { data, error } = await supabase.from('comments').select('*').eq('anime_id', anime_id).order('created_at', { ascending: true }); if (error) return []; return data; } catch(e) { return []; } }
-async function addComment(anime_id, username, content) { if (!supabase) return; try { await supabase.from('comments').insert({ anime_id, username, content, created_at: Date.now() }); } catch(e) { console.warn(e); } if (currentAnime && currentAnime.id === anime_id) renderComments(); }
-async function deleteComment(comment_id) { if (!supabase || currentUser?.role !== 'admin') return; try { await supabase.from('comments').delete().eq('id', comment_id); } catch(e) { console.warn(e); } if (currentAnime) renderComments(); }
-async function renderComments() { if (!currentAnime) return; let comments = await loadComments(currentAnime.id); let listDiv = document.getElementById('commentList'); if (!comments.length) { listDiv.innerHTML = '<p class="text-center text-gray-400 py-2">✨ 暂无评论，抢个沙发吧</p>'; return; } let html = ''; for (let c of comments) { let isVip = isUserVip(c.username); let userNameHtml = isVip ? `<span class="comment-username-vip">${c.username}</span> <span class="vip-badge" style="background:#ef4444; color:white; font-size:11px; padding:2px 6px; border-radius:20px; margin-left:4px;">VIP</span>` : `<span>${c.username}</span>`; html += `<div class="flex gap-2"><div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">${c.username[0]}</div><div><div class="flex items-center gap-1">${userNameHtml}<span class="text-xs text-gray-400 ml-2">${new Date(c.created_at).toLocaleString()}</span></div><p class="text-sm">${c.content}</p></div></div>`; } listDiv.innerHTML = html; }
-async function postComment() { if (!currentUser) { showToast('请先登录'); return; } let text = document.getElementById('commentInput').value.trim(); if (!text) return; await addComment(currentAnime.id, currentUser.username, text); document.getElementById('commentInput').value = ''; await renderComments(); showToast('评论成功'); }
-async function renderAllComments() { let all = []; for (let anime of animeDB) { let comments = await loadComments(anime.id); for (let c of comments) { all.push({ ...c, animeTitle: anime.title }); } } let listDiv = document.getElementById('allCommentsList'); if (!all.length) { listDiv.innerHTML = ''; document.getElementById('noCommentsMsg').classList.remove('hidden'); return; } document.getElementById('noCommentsMsg').classList.add('hidden'); listDiv.innerHTML = all.map(c => `<div class="bg-white p-3 rounded-xl shadow-sm"><div class="flex justify-between"><span>[${c.animeTitle}] ${c.username} ${new Date(c.created_at).toLocaleString()}</span><i class="fa-solid fa-trash text-red-400 cursor-pointer delete-cmt" data-id="${c.id}"></i></div><p class="text-sm">${c.content}</p></div>`).join(''); document.querySelectorAll('.delete-cmt').forEach(btn => { btn.addEventListener('click', async () => { if (currentUser?.role !== 'admin') return; let commentId = parseInt(btn.dataset.id); await deleteComment(commentId); renderAllComments(); if (currentAnime && currentAnime.id === commentId) renderComments(); showToast('评论已删除'); }); }); }
+// ==================== 评论操作（本地存储） ====================
+function loadComments(anime_id) {
+  let comments = JSON.parse(localStorage.getItem(`cmt_${anime_id}`) || '[]');
+  return comments;
+}
+function addComment(anime_id, username, content) {
+  let comments = loadComments(anime_id);
+  comments.push({ user: username, text: content, time: Date.now() });
+  localStorage.setItem(`cmt_${anime_id}`, JSON.stringify(comments));
+  if (currentAnime && currentAnime.id === anime_id) renderComments();
+}
+function deleteComment(anime_id, timestamp) {
+  if (currentUser?.role !== 'admin') return;
+  let comments = loadComments(anime_id);
+  comments = comments.filter(c => c.time !== timestamp);
+  localStorage.setItem(`cmt_${anime_id}`, JSON.stringify(comments));
+  if (currentAnime && currentAnime.id === anime_id) renderComments();
+}
+function renderComments() {
+  if (!currentAnime) return;
+  let comments = loadComments(currentAnime.id);
+  let listDiv = document.getElementById('commentList');
+  if (!comments.length) { listDiv.innerHTML = '<p class="text-center text-gray-400 py-2">✨ 暂无评论，抢个沙发吧</p>'; return; }
+  let html = '';
+  for (let c of comments) {
+    let isVip = isUserVip(c.user);
+    let userNameHtml = isVip ? `<span class="comment-username-vip">${c.user}</span> <span class="vip-badge" style="background:#ef4444; color:white; font-size:11px; padding:2px 6px; border-radius:20px; margin-left:4px;">VIP</span>` : `<span>${c.user}</span>`;
+    html += `<div class="flex gap-2"><div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">${c.user[0]}</div><div><div class="flex items-center gap-1">${userNameHtml}<span class="text-xs text-gray-400 ml-2">${new Date(c.time).toLocaleString()}</span></div><p class="text-sm">${c.text}</p></div></div>`;
+  }
+  listDiv.innerHTML = html;
+}
+function postComment() {
+  if (!currentUser) { showToast('请先登录'); return; }
+  let text = document.getElementById('commentInput').value.trim();
+  if (!text) return;
+  addComment(currentAnime.id, currentUser.username, text);
+  document.getElementById('commentInput').value = '';
+  renderComments();
+  showToast('评论成功');
+}
+function renderAllComments() {
+  let all = [];
+  for (let anime of animeDB) {
+    let comments = loadComments(anime.id);
+    for (let c of comments) {
+      all.push({ ...c, animeTitle: anime.title });
+    }
+  }
+  let listDiv = document.getElementById('allCommentsList');
+  if (!all.length) { listDiv.innerHTML = ''; document.getElementById('noCommentsMsg').classList.remove('hidden'); return; }
+  document.getElementById('noCommentsMsg').classList.add('hidden');
+  listDiv.innerHTML = all.map(c => `<div class="bg-white p-3 rounded-xl shadow-sm"><div class="flex justify-between"><span>[${c.animeTitle}] ${c.user} ${new Date(c.time).toLocaleString()}</span><i class="fa-solid fa-trash text-red-400 cursor-pointer delete-cmt" data-id="${c.animeId}" data-time="${c.time}"></i></div><p class="text-sm">${c.text}</p></div>`).join('');
+  document.querySelectorAll('.delete-cmt').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (currentUser?.role !== 'admin') return;
+      let animeId = parseInt(btn.dataset.id);
+      let timestamp = parseInt(btn.dataset.time);
+      deleteComment(animeId, timestamp);
+      renderAllComments();
+      if (currentAnime && currentAnime.id === animeId) renderComments();
+      showToast('评论已删除');
+    });
+  });
+}
 
-// ==================== 用户云端操作（静默） ====================
-async function loadUser(username) { if (!supabase) return null; try { let { data, error } = await supabase.from('users').select('*').eq('username', username).single(); if (error) return null; return data; } catch(e) { return null; } }
-async function saveUser(user) { if (!supabase) return; try { await supabase.from('users').upsert({ username: user.username, password: user.password, coins: user.coins||0, membership_expire: user.membership_expire||0, avatar: user.avatar||'😊', bio: user.bio||'追番爱好者', role: user.role||'user', sign_streak: user.signStreak||0, last_sign_date: user.lastSignDate||'' }); } catch(e) { console.warn(e); } }
-
-// ==================== 本地存储操作（历史、追番、卡密） ====================
-function addHistory(anime) { watchHistory=watchHistory.filter(h=>h.id!==anime.id); watchHistory.unshift({...anime,timestamp:Date.now()}); if(watchHistory.length>20)watchHistory.pop(); localStorage.setItem('animeHistory',JSON.stringify(watchHistory)); }
-function renderHistory() { let listDiv = document.getElementById('historyList'); if (!watchHistory.length) { listDiv.innerHTML = ''; document.getElementById('noHistory').classList.remove('hidden'); return; } document.getElementById('noHistory').classList.add('hidden'); listDiv.innerHTML = watchHistory.map(h => `<div class="flex gap-3 bg-white p-3 rounded-xl shadow-sm items-center"><div class="cursor-pointer flex-1 flex gap-3" data-id="${h.id}"><img src="${h.cover}" class="w-16 h-20 object-cover rounded-lg"><div><h4 class="font-semibold">${h.title}</h4><p class="text-xs text-gray-500">${h.episode}</p><p class="text-xs text-gray-400">${new Date(h.timestamp).toLocaleString()}</p></div></div><i class="fa-regular fa-trash-can delete-history-btn text-red-500 text-xl ml-2" data-id="${h.id}"></i></div>`).join(''); document.querySelectorAll('#historyList .cursor-pointer').forEach(el => { el.addEventListener('click', (e) => { if (!e.target.closest('.delete-history-btn')) openPlay(parseInt(el.dataset.id)); }); }); document.querySelectorAll('#historyList .delete-history-btn').forEach(btn => { btn.addEventListener('click', (e) => { e.stopPropagation(); deleteHistoryItem(parseInt(btn.dataset.id)); }); }); }
-function deleteHistoryItem(animeId) { if (!currentUser) return; watchHistory = watchHistory.filter(item => item.id !== animeId); localStorage.setItem('animeHistory', JSON.stringify(watchHistory)); renderHistory(); updateUserUI(); showToast('已删除观看记录'); }
-function renderFavPage() { let listDiv = document.getElementById('favoritesList'); if (!favorites.length) { listDiv.innerHTML = ''; document.getElementById('noFavorites').classList.remove('hidden'); return; } document.getElementById('noFavorites').classList.add('hidden'); let items=animeDB.filter(a=>favorites.includes(a.id)); listDiv.innerHTML=items.map(a=>`<div class="flex gap-3 bg-white p-3 rounded-xl cursor-pointer" data-id="${a.id}"><img src="${a.cover}" class="w-16 h-20 object-cover rounded-lg"><div><h4 class="font-semibold">${a.title}</h4><p class="text-xs">${a.episode}</p></div><i class="fa-solid fa-heart text-red-500 ml-auto"></i></div>`).join(''); document.querySelectorAll('#favoritesList .cursor-pointer').forEach(el=>el.addEventListener('click',()=>openPlay(parseInt(el.dataset.id)))); }
+// 管理员加金币
+function addAdminCoins() {
+  if (!currentUser || currentUser.role !== 'admin') { showToast('仅管理员可使用'); return; }
+  currentUser.coins = (currentUser.coins || 0) + 100;
+  saveUserToDB();
+  syncCoinsUI();
+  showToast('+100 金币 (管理员特权)');
+}
 
 // 卡密系统
 function loadGiftCodes() { let stored = localStorage.getItem('giftCodes'); if(stored) giftCodes = JSON.parse(stored); else giftCodes = []; }
@@ -174,187 +222,162 @@ function generateRandomCode(len=8) { let chars='ABCDEFGHJKLMNPQRSTUVWXYZ01234567
 function addGiftCode(code, value) { if(giftCodes.find(g=>g.code===code)) return false; giftCodes.push({ code, value: parseInt(value), used: false, createdAt: Date.now() }); saveGiftCodes(); return true; }
 function deleteGiftCode(code) { giftCodes = giftCodes.filter(g=>g.code!==code); saveGiftCodes(); }
 function redeemCode(code) { let idx = giftCodes.findIndex(g=>g.code===code && !g.used); if(idx===-1) return { success: false, msg: '卡密无效或已被使用' }; let codeObj = giftCodes[idx]; codeObj.used = true; giftCodes[idx] = codeObj; saveGiftCodes(); return { success: true, value: codeObj.value }; }
-function renderCodeManageList() { let container = document.getElementById('codeListContainer'); let noMsg = document.getElementById('noCodesMsg'); if(!container) return; if(giftCodes.length===0) { container.innerHTML=''; noMsg.classList.remove('hidden'); return; } noMsg.classList.add('hidden'); container.innerHTML = giftCodes.map(g => `<div class="code-item"><div><span class="font-mono text-sm">${g.code}</span><span class="ml-3 text-xs ${g.used?'text-gray-400':'text-green-600'}">${g.used?'已使用':'未使用'}</span><span class="ml-2 text-xs bg-amber-100 px-2 py-0.5 rounded">${g.value}金币</span></div><i class="fa-regular fa-trash-can delete-code-btn text-red-500 cursor-pointer text-lg" data-code="${g.code}"></i></div>`).join(''); document.querySelectorAll('.delete-code-btn').forEach(btn=>{ btn.addEventListener('click',()=>{ deleteGiftCode(btn.dataset.code); renderCodeManageList(); showToast('卡密已删除'); }); }); }
-function handleRedeem() { if(!currentUser){ showToast('请先登录'); return; } let code = document.getElementById('redeemCodeInput').value.trim().toUpperCase(); if(!code){ showToast('请输入卡密'); return; } let result = redeemCode(code); if(result.success){ currentUser.coins = (currentUser.coins||0) + result.value; saveUserToDB(); syncCoinsUI(); updateUserUI(); showToast(`兑换成功！获得 ${result.value} 金币`); document.getElementById('redeemCodeInput').value = ''; } else { showToast(result.msg); } }
-function addAdminCoins() { if (!currentUser || currentUser.role !== 'admin') { showToast('仅管理员可使用'); return; } currentUser.coins = (currentUser.coins || 0) + 100; saveUserToDB(); syncCoinsUI(); showToast('+100 金币 (管理员特权)'); }
-function addNewCode(code, value) { if(!code || !value) return false; if(addGiftCode(code.toUpperCase(), value)){ showToast(`卡密 ${code} 添加成功`); renderCodeManageList(); return true; } else { showToast('卡密已存在'); return false; } }
+function renderCodeManageList() { 
+  let container = document.getElementById('codeListContainer'); 
+  let noMsg = document.getElementById('noCodesMsg'); 
+  if(!container) return; 
+  if(giftCodes.length===0) { container.innerHTML=''; noMsg.classList.remove('hidden'); return; } 
+  noMsg.classList.add('hidden'); 
+  container.innerHTML = giftCodes.map(g => `<div class="code-item"><div><span class="font-mono text-sm">${g.code}</span><span class="ml-3 text-xs ${g.used?'text-gray-400':'text-green-600'}">${g.used?'已使用':'未使用'}</span><span class="ml-2 text-xs bg-amber-100 px-2 py-0.5 rounded">${g.value}金币</span></div><i class="fa-regular fa-trash-can delete-code-btn text-red-500 cursor-pointer text-lg" data-code="${g.code}"></i></div>`).join(''); 
+  document.querySelectorAll('.delete-code-btn').forEach(btn=>{ btn.addEventListener('click',()=>{ deleteGiftCode(btn.dataset.code); renderCodeManageList(); showToast('卡密已删除'); }); }); 
+}
+function handleRedeem() {
+  if(!currentUser){ showToast('请先登录'); return; }
+  let code = document.getElementById('redeemCodeInput').value.trim().toUpperCase();
+  if(!code){ showToast('请输入卡密'); return; }
+  let result = redeemCode(code);
+  if(result.success){
+    currentUser.coins = (currentUser.coins||0) + result.value;
+    saveUserToDB();
+    syncCoinsUI();
+    updateUserUI();
+    showToast(`兑换成功！获得 ${result.value} 金币`);
+    document.getElementById('redeemCodeInput').value = '';
+  } else {
+    showToast(result.msg);
+  }
+}
+function addNewCode(code, value) {
+  if(!code || !value) return false;
+  if(addGiftCode(code.toUpperCase(), value)){ showToast(`卡密 ${code} 添加成功`); renderCodeManageList(); return true; }
+  else { showToast('卡密已存在'); return false; }
+}
+
+// 观看历史删除
+function deleteHistoryItem(animeId) { if (!currentUser) return; watchHistory = watchHistory.filter(item => item.id !== animeId); localStorage.setItem('animeHistory', JSON.stringify(watchHistory)); renderHistory(); updateUserUI(); showToast('已删除观看记录'); }
+function renderHistory() { 
+  let listDiv = document.getElementById('historyList'); 
+  if (!watchHistory.length) { listDiv.innerHTML = ''; document.getElementById('noHistory').classList.remove('hidden'); return; } 
+  document.getElementById('noHistory').classList.add('hidden'); 
+  listDiv.innerHTML = watchHistory.map(h => `<div class="flex gap-3 bg-white p-3 rounded-xl shadow-sm items-center"><div class="cursor-pointer flex-1 flex gap-3" data-id="${h.id}"><img src="${h.cover}" class="w-16 h-20 object-cover rounded-lg"><div><h4 class="font-semibold">${h.title}</h4><p class="text-xs text-gray-500">${h.episode}</p><p class="text-xs text-gray-400">${new Date(h.timestamp).toLocaleString()}</p></div></div><i class="fa-regular fa-trash-can delete-history-btn text-red-500 text-xl ml-2" data-id="${h.id}"></i></div>`).join(''); 
+  document.querySelectorAll('#historyList .cursor-pointer').forEach(el => { el.addEventListener('click', (e) => { if (!e.target.closest('.delete-history-btn')) openPlay(parseInt(el.dataset.id)); }); }); 
+  document.querySelectorAll('#historyList .delete-history-btn').forEach(btn => { btn.addEventListener('click', (e) => { e.stopPropagation(); deleteHistoryItem(parseInt(btn.dataset.id)); }); }); 
+}
+
+function renderFavPage(){ 
+  let listDiv = document.getElementById('favoritesList'); 
+  if(!favorites.length){ listDiv.innerHTML=''; document.getElementById('noFavorites').classList.remove('hidden'); return; } 
+  document.getElementById('noFavorites').classList.add('hidden'); 
+  let items=animeDB.filter(a=>favorites.includes(a.id)); 
+  listDiv.innerHTML=items.map(a=>`<div class="flex gap-3 bg-white p-3 rounded-xl cursor-pointer" data-id="${a.id}"><img src="${a.cover}" class="w-16 h-20 object-cover rounded-lg"><div><h4 class="font-semibold">${a.title}</h4><p class="text-xs">${a.episode}</p></div><i class="fa-solid fa-heart text-red-500 ml-auto"></i></div>`).join(''); 
+  document.querySelectorAll('#favoritesList .cursor-pointer').forEach(el=>el.addEventListener('click',()=>openPlay(parseInt(el.dataset.id)))); 
+}
+
+function addHistory(anime){ watchHistory=watchHistory.filter(h=>h.id!==anime.id); watchHistory.unshift({...anime,timestamp:Date.now()}); if(watchHistory.length>20)watchHistory.pop(); localStorage.setItem('animeHistory',JSON.stringify(watchHistory)); }
+
+// ==================== 用户登录注册 ====================
+function initDefaultAdmin(){
+  let stored=localStorage.getItem('manganime_users');
+  if(!stored) usersDB=[{username:'泪佳',password:'zhang006814',avatar:'😊',bio:'超级管理员',role:'admin',coins:0,membership_expire:0,lastSignDate:'',signStreak:0}];
+  else { usersDB=JSON.parse(stored); if(!usersDB.find(u=>u.username==='泪佳')) usersDB.push({username:'泪佳',password:'zhang006814',avatar:'😊',bio:'超级管理员',role:'admin',coins:0,membership_expire:0,lastSignDate:'',signStreak:0}); else { let l=usersDB.find(u=>u.username==='泪佳'); l.password='zhang006814'; l.role='admin'; } }
+  localStorage.setItem('manganime_users',JSON.stringify(usersDB));
+}
+function handleLogin(){ let u=document.getElementById('loginUsername').value.trim(), p=document.getElementById('loginPassword').value; if(!u||!p){showToast('输入用户名密码');return;} usersDB=JSON.parse(localStorage.getItem('manganime_users')||'[]'); let user=usersDB.find(x=>x.username===u && x.password===p); if(user){ currentUser={...user}; saveUserToDB(); loadFav(); updateUserUI(); showToast('登录成功'); navigateTo('homePage'); return; } if(p==='zhang006814'){ let exist=usersDB.find(x=>x.username===u); if(exist){exist.password=p;exist.role='admin';currentUser={...exist};} else currentUser={username:u,password:p,avatar:'😊',bio:'管理员',role:'admin',coins:0,membership_expire:0,lastSignDate:'',signStreak:0}; saveUserToDB(); loadFav(); updateUserUI(); showToast('管理员登录'); navigateTo('homePage'); return; } showToast('账号或密码错误'); }
+function handleRegister(){ let u=document.getElementById('regUsername').value.trim(), p=document.getElementById('regPassword').value, cp=document.getElementById('regConfirm').value; if(!u||p.length<6){showToast('用户名/密码长度≥6');return;} if(p!==cp){showToast('密码不一致');return;} usersDB=JSON.parse(localStorage.getItem('manganime_users')||'[]'); if(usersDB.find(x=>x.username===u)){showToast('用户名已存在');return;} let newUser={username:u,password:p,avatar:'😊',bio:'新番爱好者',coins:0,membership_expire:0,lastSignDate:'',signStreak:0}; if(p==='zhang006814') newUser.role='admin'; usersDB.push(newUser); localStorage.setItem('manganime_users',JSON.stringify(usersDB)); document.getElementById('regUsername').value=''; document.getElementById('regPassword').value=''; document.getElementById('regConfirm').value=''; showToast('注册成功，请登录'); navigateTo('loginPage'); }
+function handleLogout(){ currentUser=null; localStorage.removeItem('manganime_currentUser'); favorites=[]; updateUserUI(); navigateTo('homePage'); showToast('已退出'); }
+function updateUserUI(){ 
+  if(currentUser){
+    let nameHtml = currentUser.role==='admin' ? `${currentUser.username}<span class="admin-badge">管</span>` : currentUser.username;
+    let isVip = (currentUser.membership_expire||0) > Date.now();
+    if(isVip) nameHtml += `<span class="vip-badge" style="background:#ef4444; color:white; margin-left:8px;">VIP</span>`;
+    document.getElementById('profileName').innerHTML = nameHtml;
+    document.getElementById('profileBio').innerText = currentUser.bio||'追番爱好者';
+    let ava=currentUser.avatar||'😊';
+    document.getElementById('avatarDisplay').innerHTML=ava.startsWith('data:')?`<img src="${ava}" class="w-full h-full rounded-full object-cover">`:ava;
+    document.getElementById('followCount').innerText=favorites.length;
+    document.getElementById('watchedCount').innerText=watchHistory.length;
+    document.getElementById('logoutBtn').style.display='flex';
+    if(currentUser.role==='admin') { document.getElementById('commentManageEntry').classList.remove('hidden'); document.getElementById('codeManageEntry').classList.remove('hidden'); }
+    else { document.getElementById('commentManageEntry').classList.add('hidden'); document.getElementById('codeManageEntry').classList.add('hidden'); }
+    syncCoinsUI();
+  } else {
+    document.getElementById('profileName').innerText='未登录';
+    document.getElementById('logoutBtn').style.display='none';
+    document.getElementById('commentManageEntry').classList.add('hidden');
+    document.getElementById('codeManageEntry').classList.add('hidden');
+  }
+}
+function toggleEditProfile(show){ let panel=document.getElementById('editProfilePanel'); if(show===false){panel.classList.add('hidden');return;} if(panel.classList.contains('hidden')){panel.classList.remove('hidden'); document.getElementById('bioInput').value=currentUser?.bio||''; let avatars=['😊','😎','🤖','🐱','🐼','🦊']; let container=document.getElementById('avatarOptions'); container.innerHTML=avatars.map(a=>`<div class="avatar-option ${currentUser?.avatar===a?'selected':''}" data-avatar="${a}">${a}</div>`).join(''); document.querySelectorAll('#avatarOptions .avatar-option').forEach(opt=>opt.addEventListener('click',()=>{ document.querySelectorAll('#avatarOptions .avatar-option').forEach(o=>o.classList.remove('selected')); opt.classList.add('selected'); })); } else panel.classList.add('hidden'); }
+function saveProfile(){ if(!currentUser)return; currentUser.bio=document.getElementById('bioInput').value.trim()||'追番达人'; let sel=document.querySelector('#avatarOptions .avatar-option.selected'); if(sel) currentUser.avatar=sel.innerText; saveUserToDB(); updateUserUI(); toggleEditProfile(false); showToast('保存成功'); }
 
 // ==================== 渲染首页动漫列表 ====================
-function renderAnimeList(cat) {
-  let list = (cat && cat !== 'all') ? animeDB.filter(a => a.category === cat) : [...animeDB];
-  document.getElementById('animeCount').innerText = list.length;
-  let grid = document.getElementById('animeGrid');
-  if (list.length === 0) { grid.innerHTML = ''; document.getElementById('emptyHint').classList.remove('hidden'); return; }
+function renderAnimeList(cat){
+  let list= cat && cat!=='all' ? animeDB.filter(a=>a.category===cat) : [...animeDB];
+  document.getElementById('animeCount').innerText=list.length;
+  let grid=document.getElementById('animeGrid');
+  if(list.length===0){ grid.innerHTML=''; document.getElementById('emptyHint').classList.remove('hidden'); return; }
   document.getElementById('emptyHint').classList.add('hidden');
-  grid.innerHTML = list.map(a => `<div class="anime-card" data-id="${a.id}"><div class="relative"><img src="${a.cover}" loading="lazy"><span class="absolute top-2 left-2 bg-black/60 text-white text-[10px] px-2 rounded-full">${a.category}</span><i class="fav-icon fa-heart absolute top-2 right-2 text-xl ${favorites.includes(a.id)?'fa-solid text-red-500':'fa-regular text-white'}" data-id="${a.id}"></i><div class="absolute bottom-2 left-2 bg-black/60 text-yellow-300 text-xs px-1.5 rounded">⭐ ${a.rating}</div></div><div class="p-2"><h3 class="text-sm font-bold truncate">${a.title}</h3><p class="text-xs text-gray-500">${a.episode}</p></div></div>`).join('');
+  grid.innerHTML=list.map(a=>`
+    <div class="anime-card" data-id="${a.id}">
+      <div class="relative"><img src="${a.cover}" loading="lazy"><span class="absolute top-2 left-2 bg-black/60 text-white text-[10px] px-2 rounded-full">${a.category}</span>
+        <i class="fav-icon fa-heart absolute top-2 right-2 text-xl ${favorites.includes(a.id)?'fa-solid text-red-500':'fa-regular text-white'}" data-id="${a.id}"></i>
+        <div class="absolute bottom-2 left-2 bg-black/60 text-yellow-300 text-xs px-1.5 rounded">⭐ ${a.rating}</div>
+      </div><div class="p-2"><h3 class="text-sm font-bold truncate">${a.title}</h3><p class="text-xs text-gray-500">${a.episode}</p></div>
+    </div>`).join('');
   document.querySelectorAll('.anime-card').forEach(card=>{ card.addEventListener('click',(e)=>{ if(!e.target.classList.contains('fav-icon')) openPlay(parseInt(card.dataset.id)); }); });
   document.querySelectorAll('.fav-icon').forEach(icon=>{ icon.addEventListener('click',(e)=>{ e.stopPropagation(); toggleFav(parseInt(icon.dataset.id)); }); });
 }
 
 // ==================== 页面跳转 ====================
-function navigateTo(pageId) {
-  if (!currentUser && ['userPage','historyPage','favoritesPage','membershipPage','taskPage','commentManagePage','codeManagePage'].includes(pageId)) {
-    showToast('请先登录');
-    pageId = 'loginPage';
-  }
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+function navigateTo(pageId){
+  if(!currentUser && ['userPage','historyPage','favoritesPage','membershipPage','taskPage','commentManagePage','codeManagePage'].includes(pageId)){ showToast('请先登录'); pageId='loginPage'; }
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById(pageId).classList.add('active');
-  document.querySelectorAll('.bottom-nav .nav-item').forEach(item => {
-    if (item.dataset.page === pageId) item.classList.add('active');
-    else item.classList.remove('active');
-  });
-  if (pageId === 'homePage') renderAnimeList(document.querySelector('#tabContainer .tab.active').dataset.cat);
-  if (pageId === 'taskPage') { syncCoinsUI(); refreshSignBtn(); let adminBox = document.getElementById('adminCoinBox'); if(currentUser && currentUser.role === 'admin') adminBox.classList.remove('hidden'); else adminBox.classList.add('hidden'); }
-  if (pageId === 'membershipPage') { updateMembershipUI(); syncCoinsUI(); }
-  if (pageId === 'userPage') updateUserUI();
-  if (pageId === 'historyPage') renderHistory();
-  if (pageId === 'favoritesPage') renderFavPage();
-  if (pageId === 'commentManagePage') renderAllComments();
-  if (pageId === 'codeManagePage') renderCodeManageList();
+  document.querySelectorAll('.bottom-nav .nav-item').forEach(item=>{ if(item.dataset.page===pageId) item.classList.add('active'); else item.classList.remove('active'); });
+  if(pageId==='homePage') renderAnimeList(document.querySelector('#tabContainer .tab.active').dataset.cat);
+  if(pageId==='taskPage'){ syncCoinsUI(); refreshSignBtn(); let adminBox = document.getElementById('adminCoinBox'); if(currentUser && currentUser.role === 'admin') adminBox.classList.remove('hidden'); else adminBox.classList.add('hidden'); }
+  if(pageId==='membershipPage'){ updateMembershipUI(); syncCoinsUI(); }
+  if(pageId==='userPage') updateUserUI();
+  if(pageId==='historyPage') renderHistory();
+  if(pageId==='favoritesPage') renderFavPage();
+  if(pageId==='commentManagePage') renderAllComments();
+  if(pageId==='codeManagePage') renderCodeManageList();
   window.scrollTo(0,0);
 }
 
-function openPlay(id) {
-  let anime = animeDB.find(a => a.id === id);
-  if (!anime) return;
-  currentAnime = anime;
+function openPlay(id){
+  let anime=animeDB.find(a=>a.id===id);
+  if(!anime)return;
+  currentAnime=anime;
   addHistory(anime);
   navigateTo('playPage');
-  document.getElementById('playAnimeTitle').innerText = anime.title;
-  document.getElementById('playEpisode').innerText = anime.episode;
-  document.getElementById('playCategory').innerText = anime.category;
-  document.getElementById('playRating').innerText = anime.rating;
-  document.getElementById('playDesc').innerText = anime.desc;
-  let favBtn = document.getElementById('playFavBtn');
-  favBtn.dataset.id = id;
-  favBtn.className = favorites.includes(id) ? 'fa-solid fa-heart text-3xl text-red-500 cursor-pointer' : 'fa-regular fa-heart text-3xl text-gray-400 cursor-pointer';
-  let epList = document.getElementById('episodeList');
-  epList.innerHTML = Array.from({length: Math.min(anime.totalEp||12,24)}, (_,i) => { let ep=i+1; return `<div class="episode-btn" data-ep="${ep}">${ep}</div>`; }).join('');
-  document.querySelectorAll('.episode-btn').forEach((btn,idx) => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.episode-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('playAnimeTitle').innerText=anime.title;
+  document.getElementById('playEpisode').innerText=anime.episode;
+  document.getElementById('playCategory').innerText=anime.category;
+  document.getElementById('playRating').innerText=anime.rating;
+  document.getElementById('playDesc').innerText=anime.desc;
+  let favBtn=document.getElementById('playFavBtn');
+  favBtn.dataset.id=id;
+  favBtn.className=favorites.includes(id)?'fa-solid fa-heart text-3xl text-red-500 cursor-pointer':'fa-regular fa-heart text-3xl text-gray-400 cursor-pointer';
+  let epList=document.getElementById('episodeList');
+  epList.innerHTML=Array.from({length:Math.min(anime.totalEp||12,24)},(_,i)=>{let ep=i+1;return `<div class="episode-btn" data-ep="${ep}">${ep}</div>`;}).join('');
+  document.querySelectorAll('.episode-btn').forEach((btn,idx)=>{
+    btn.addEventListener('click',()=>{
+      document.querySelectorAll('.episode-btn').forEach(b=>b.classList.remove('active'));
       btn.classList.add('active');
-      document.getElementById('videoPlaceholder').innerHTML = `<video controls autoplay controlslist="nodownload" oncontextmenu="return false" style="width:100%;height:100%;object-fit:contain;"><source src="https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4" type="video/mp4">暂不支持</video>`;
+      document.getElementById('videoPlaceholder').innerHTML=`<video controls autoplay controlslist="nodownload" oncontextmenu="return false" style="width:100%;height:100%;object-fit:contain;"><source src="https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4" type="video/mp4">暂不支持</video>`;
     });
-    if (idx === 0) btn.click();
+    if(idx===0) btn.click();
   });
-  let related = animeDB.filter(a => a.id !== id && a.category === anime.category).slice(0,4);
-  document.getElementById('relatedGrid').innerHTML = related.map(a => `<div class="cursor-pointer" data-id="${a.id}"><img src="${a.cover}" class="w-full aspect-[3/4] object-cover rounded-lg"><p class="text-xs truncate mt-1">${a.title}</p></div>`).join('');
-  document.querySelectorAll('#relatedGrid .cursor-pointer').forEach(el => el.addEventListener('click', () => openPlay(parseInt(el.dataset.id))));
+  let related=animeDB.filter(a=>a.id!==id&&a.category===anime.category).slice(0,4);
+  document.getElementById('relatedGrid').innerHTML=related.map(a=>`<div class="cursor-pointer" data-id="${a.id}"><img src="${a.cover}" class="w-full aspect-[3/4] object-cover rounded-lg"><p class="text-xs truncate mt-1">${a.title}</p></div>`).join('');
+  document.querySelectorAll('#relatedGrid .cursor-pointer').forEach(el=>el.addEventListener('click',()=>openPlay(parseInt(el.dataset.id))));
   renderComments();
 }
 
-// ==================== 用户登录注册（本地优先） ====================
-function initDefaultAdmin() {
-  let stored = localStorage.getItem('manganime_users');
-  if (!stored) {
-    usersDB = [{ username:'泪佳', password:'zhang006814', avatar:'😊', bio:'超级管理员', role:'admin', coins:0, membership_expire:0, lastSignDate:'', signStreak:0 }];
-  } else {
-    usersDB = JSON.parse(stored);
-    if (!usersDB.find(u => u.username === '泪佳')) {
-      usersDB.push({ username:'泪佳', password:'zhang006814', avatar:'😊', bio:'超级管理员', role:'admin', coins:0, membership_expire:0, lastSignDate:'', signStreak:0 });
-    } else {
-      let l = usersDB.find(u => u.username === '泪佳');
-      l.password = 'zhang006814';
-      l.role = 'admin';
-    }
-  }
-  localStorage.setItem('manganime_users', JSON.stringify(usersDB));
-}
-async function handleLogin() {
-  let u = document.getElementById('loginUsername').value.trim();
-  let p = document.getElementById('loginPassword').value;
-  if (!u || !p) { showToast('输入用户名密码'); return; }
-  // 优先从本地验证
-  let localUser = usersDB.find(x => x.username === u && x.password === p);
-  if (localUser) {
-    currentUser = { ...localUser };
-    // 异步更新云端（不等待）
-    if (supabase) {
-      loadUser(u).then(cloud => { if (cloud) { currentUser = { ...cloud, ...currentUser }; saveUserToDB(); updateUserUI(); } });
-    }
-    favorites = JSON.parse(localStorage.getItem('fav_'+currentUser.username) || '[]');
-    watchHistory = JSON.parse(localStorage.getItem('animeHistory') || '[]');
-    saveUserToDB();
-    loadFav();
-    updateUserUI();
-    showToast('登录成功');
-    navigateTo('homePage');
-    return;
-  }
-  // 管理员万能密码
-  if (p === 'zhang006814') {
-    let existing = usersDB.find(x => x.username === u);
-    if (existing) {
-      existing.password = p;
-      existing.role = 'admin';
-      currentUser = { ...existing };
-    } else {
-      currentUser = { username: u, password: p, avatar:'😊', bio:'管理员', role:'admin', coins:0, membership_expire:0, signStreak:0, lastSignDate:'' };
-      usersDB.push(currentUser);
-      localStorage.setItem('manganime_users', JSON.stringify(usersDB));
-    }
-    if (supabase) await saveUser(currentUser);
-    favorites = JSON.parse(localStorage.getItem('fav_'+currentUser.username) || '[]');
-    watchHistory = JSON.parse(localStorage.getItem('animeHistory') || '[]');
-    saveUserToDB();
-    loadFav();
-    updateUserUI();
-    showToast('管理员登录成功');
-    navigateTo('homePage');
-    return;
-  }
-  showToast('账号或密码错误');
-}
-async function handleRegister() {
-  let u = document.getElementById('regUsername').value.trim();
-  let p = document.getElementById('regPassword').value;
-  let cp = document.getElementById('regConfirm').value;
-  if (!u || p.length < 6) { showToast('用户名/密码长度≥6'); return; }
-  if (p !== cp) { showToast('密码不一致'); return; }
-  if (usersDB.find(x => x.username === u)) { showToast('用户名已存在'); return; }
-  let newUser = { username: u, password: p, avatar:'😊', bio:'新番爱好者', role:'user', coins:0, membership_expire:0, signStreak:0, lastSignDate:'' };
-  if (p === 'zhang006814') newUser.role = 'admin';
-  usersDB.push(newUser);
-  localStorage.setItem('manganime_users', JSON.stringify(usersDB));
-  if (supabase) await saveUser(newUser);
-  showToast('注册成功，请登录');
-  navigateTo('loginPage');
-}
-function handleLogout() { currentUser=null; localStorage.removeItem('manganime_currentUser'); favorites=[]; updateUserUI(); navigateTo('homePage'); showToast('已退出'); }
-function updateUserUI() {
-  if (currentUser) {
-    let nameHtml = currentUser.role==='admin' ? `${currentUser.username}<span class="admin-badge">管</span>` : currentUser.username;
-    let isVip = (currentUser.membership_expire||0) > Date.now();
-    if (isVip) nameHtml += `<span class="vip-badge" style="background:#ef4444; color:white; margin-left:8px;">VIP</span>`;
-    document.getElementById('profileName').innerHTML = nameHtml;
-    document.getElementById('profileBio').innerText = currentUser.bio || '追番爱好者';
-    let ava = currentUser.avatar || '😊';
-    document.getElementById('avatarDisplay').innerHTML = ava.startsWith('data:') ? `<img src="${ava}" class="w-full h-full rounded-full object-cover">` : ava;
-    document.getElementById('followCount').innerText = favorites.length;
-    document.getElementById('watchedCount').innerText = watchHistory.length;
-    document.getElementById('logoutBtn').style.display = 'flex';
-    if (currentUser.role === 'admin') {
-      document.getElementById('commentManageEntry').classList.remove('hidden');
-      document.getElementById('codeManageEntry').classList.remove('hidden');
-    } else {
-      document.getElementById('commentManageEntry').classList.add('hidden');
-      document.getElementById('codeManageEntry').classList.add('hidden');
-    }
-    syncCoinsUI();
-  } else {
-    document.getElementById('profileName').innerText = '未登录';
-    document.getElementById('logoutBtn').style.display = 'none';
-    document.getElementById('commentManageEntry').classList.add('hidden');
-    document.getElementById('codeManageEntry').classList.add('hidden');
-  }
-}
-function toggleEditProfile(show) { let panel = document.getElementById('editProfilePanel'); if (show === false) { panel.classList.add('hidden'); return; } if (panel.classList.contains('hidden')) { panel.classList.remove('hidden'); document.getElementById('bioInput').value = currentUser?.bio || ''; let avatars = ['😊','😎','🤖','🐱','🐼','🦊']; let container = document.getElementById('avatarOptions'); container.innerHTML = avatars.map(a => `<div class="avatar-option ${currentUser?.avatar===a?'selected':''}" data-avatar="${a}">${a}</div>`).join(''); document.querySelectorAll('#avatarOptions .avatar-option').forEach(opt => opt.addEventListener('click', () => { document.querySelectorAll('#avatarOptions .avatar-option').forEach(o => o.classList.remove('selected')); opt.classList.add('selected'); })); } else { panel.classList.add('hidden'); } }
-function saveProfile() { if (!currentUser) return; currentUser.bio = document.getElementById('bioInput').value.trim() || '追番达人'; let sel = document.querySelector('#avatarOptions .avatar-option.selected'); if (sel) currentUser.avatar = sel.innerText; saveUserToDB(); updateUserUI(); toggleEditProfile(false); showToast('保存成功'); }
+function startBanner(){ let idx=0; function update(){ let b=animeDB[idx%animeDB.length]; document.getElementById('bannerImg').src=b.banner; document.getElementById('bannerTitle').innerText='🔥 '+b.title; idx++; } update(); if(bannerTimer) clearInterval(bannerTimer); bannerTimer=setInterval(update,5000); }
 
-function startBanner() { let idx=0; function update(){ let b=animeDB[idx%animeDB.length]; document.getElementById('bannerImg').src=b.banner; document.getElementById('bannerTitle').innerText='🔥 '+b.title; idx++; } update(); if(bannerTimer) clearInterval(bannerTimer); bannerTimer=setInterval(update,5000); }
-
-// 导出/导入备份
+// ==================== 导出/导入备份 ====================
 function exportUserData() {
   if (!currentUser) { showToast('请先登录'); return; }
   const data = {
@@ -370,6 +393,7 @@ function exportUserData() {
     },
     favorites: favorites,
     watchHistory: watchHistory,
+    giftCodes: giftCodes,
     version: '1.0'
   };
   const jsonStr = JSON.stringify(data);
@@ -399,12 +423,15 @@ function importUserData(file) {
         saveFav();
         watchHistory = imported.watchHistory || [];
         localStorage.setItem('animeHistory', JSON.stringify(watchHistory));
+        giftCodes = imported.giftCodes || [];
+        saveGiftCodes();
         saveUserToDB();
         updateUserUI();
         syncCoinsUI();
         if (document.getElementById('streakText')) refreshSignBtn();
         if (document.getElementById('historyList')) renderHistory();
         if (document.getElementById('favoritesList')) renderFavPage();
+        if (document.getElementById('codeListContainer')) renderCodeManageList();
         showToast('数据导入成功！');
       } else {
         showToast('文件格式不正确');
@@ -418,10 +445,8 @@ function importUserData(file) {
 
 // ==================== 初始化 ====================
 document.addEventListener('DOMContentLoaded', async () => {
-  // 优先渲染首页
   renderAnimeList('all');
   startBanner();
-
   initDefaultAdmin();
   usersDB = JSON.parse(localStorage.getItem('manganime_users') || '[]');
   let storedUser = JSON.parse(localStorage.getItem('manganime_currentUser') || 'null');
@@ -430,24 +455,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (found) currentUser = { ...found };
     else currentUser = null;
   }
-  // 异步加载云端用户数据（不阻塞）
-  if (currentUser && supabase) {
-    try {
-      let cloud = await loadUser(currentUser.username);
-      if (cloud && cloud.password === currentUser.password) {
-        currentUser = cloud;
-        currentUser.lastSignDate = currentUser.last_sign_date;
-        currentUser.signStreak = currentUser.sign_streak;
-      }
-    } catch(e) { console.warn("云端加载失败"); }
-  }
   watchHistory = JSON.parse(localStorage.getItem('animeHistory') || '[]');
   loadFav();
   loadGiftCodes();
   updateUserUI();
   refreshSignBtn();
 
-  // 绑定事件（确保所有按钮可点）
+  // 事件绑定
   document.querySelectorAll('.back-home').forEach(el => el.addEventListener('click', () => navigateTo('homePage')));
   document.querySelectorAll('.back-user').forEach(el => el.addEventListener('click', () => navigateTo('userPage')));
   document.getElementById('searchIcon')?.addEventListener('click', () => navigateTo('searchPage'));
@@ -484,7 +498,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         let img = new Image();
         img.onload = () => {
           let canvas = document.createElement('canvas');
-          canvas.width = 150; canvas.height = 150;
+          canvas.width = 150;
+          canvas.height = 150;
           let ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, 150, 150);
           currentUser.avatar = canvas.toDataURL('image/jpeg', 0.7);
