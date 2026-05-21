@@ -38,7 +38,6 @@
     .coin-badge{background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#2d2a1e;font-weight:bold;padding:4px 12px;border-radius:30px;display:inline-flex;align-items:center;gap:6px;font-size:0.8rem}
     .delete-history-btn,.delete-code-btn{cursor:pointer}
     .code-item{background:#f9fafb;border-radius:12px;padding:10px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
-    /* Giscus 样式适配 */
     .giscus { width: 100%; margin-top: 1rem; }
   </style>
 </head>
@@ -66,9 +65,8 @@
     <div class="bg-white px-4 py-3"><div class="flex justify-between"><div><h2 class="text-lg font-bold" id="playAnimeTitle"></h2><div class="flex gap-2 text-xs text-gray-500 mt-1"><span id="playCategory"></span><span id="playEpisode"></span><span class="text-yellow-500">⭐ <span id="playRating"></span></span></div><p class="text-sm text-gray-600 mt-2" id="playDesc"></p><button id="detailBtn" class="text-red-500 text-xs mt-1">详情</button></div><i id="playFavBtn" class="fa-regular fa-heart text-3xl cursor-pointer text-gray-400"></i></div></div>
     <div class="bg-white mt-2 px-4 py-3"><h3 class="text-sm font-semibold mb-2">选集</h3><div class="episode-grid" id="episodeList"></div></div>
     <div class="mt-2 bg-white px-4 py-3"><h3 class="text-sm font-semibold mb-2">相关推荐</h3><div class="grid grid-cols-3 gap-2" id="relatedGrid"></div></div>
-    <!-- 评论区：使用 Giscus -->
     <div class="mt-2 bg-white px-4 py-3">
-      <div class="flex justify-between items-center"><h3 class="text-sm font-semibold">💬 评论区</h3><span class="text-xs text-gray-400">登录 GitHub 账号后可评论</span></div>
+      <div class="flex justify-between items-center"><h3 class="text-sm font-semibold">💬 评论区</h3><span class="text-xs text-gray-400">登录 GitHub 后可评论</span></div>
       <div id="giscus-container" class="giscus"></div>
     </div>
   </div>
@@ -197,9 +195,69 @@ function addNewCode(code, value) {
 
 // 观看历史
 function addHistory(anime){ watchHistory=watchHistory.filter(h=>h.id!==anime.id); watchHistory.unshift({...anime,timestamp:Date.now()}); if(watchHistory.length>20)watchHistory.pop(); localStorage.setItem('animeHistory',JSON.stringify(watchHistory)); }
-function renderHistory() { let listDiv = document.getElementById('historyList'); if (!watchHistory.length) { listDiv.innerHTML = ''; document.getElementById('noHistory').classList.remove('hidden'); return; } document.getElementById('noHistory').classList.add('hidden'); listDiv.innerHTML = watchHistory.map(h => `<div class="flex gap-3 bg-white p-3 rounded-xl shadow-sm items-center"><div class="cursor-pointer flex-1 flex gap-3" data-id="${h.id}"><img src="${h.cover}" class="w-16 h-20 object-cover rounded-lg"><div><h4 class="font-semibold">${h.title}</h4><p class="text-xs text-gray-500">${h.episode}</p><p class="text-xs text-gray-400">${new Date(h.timestamp).toLocaleString()}</p></div></div><i class="fa-regular fa-trash-can delete-history-btn text-red-500 text-xl ml-2" data-id="${h.id}"></i></div>`).join(''); document.querySelectorAll('#historyList .cursor-pointer').forEach(el => { el.addEventListener('click', (e) => { if (!e.target.closest('.delete-history-btn')) openPlay(parseInt(el.dataset.id)); }); }); document.querySelectorAll('#historyList .delete-history-btn').forEach(btn => { btn.addEventListener('click', (e) => { e.stopPropagation(); deleteHistoryItem(parseInt(btn.dataset.id)); }); }); }
-function deleteHistoryItem(animeId) { if (!currentUser) return; watchHistory = watchHistory.filter(item => item.id !== animeId); localStorage.setItem('animeHistory', JSON.stringify(watchHistory)); renderHistory(); updateUserUI(); showToast('已删除观看记录'); }
-function renderFavPage() { let listDiv = document.getElementById('favoritesList'); if (!favorites.length) { listDiv.innerHTML = ''; document.getElementById('noFavorites').classList.remove('hidden'); return; } document.getElementById('noFavorites').classList.add('hidden'); let items=animeDB.filter(a=>favorites.includes(a.id)); listDiv.innerHTML=items.map(a=>`<div class="flex gap-3 bg-white p-3 rounded-xl cursor-pointer" data-id="${a.id}"><img src="${a.cover}" class="w-16 h-20 object-cover rounded-lg"><div><h4 class="font-semibold">${a.title}</h4><p class="text-xs">${a.episode}</p></div><i class="fa-solid fa-heart text-red-500 ml-auto"></i></div>`).join(''); document.querySelectorAll('#favoritesList .cursor-pointer').forEach(el=>el.addEventListener('click',()=>openPlay(parseInt(el.dataset.id)))); }
+function renderHistory() { 
+  let listDiv = document.getElementById('historyList'); 
+  if (!watchHistory.length) { 
+    listDiv.innerHTML = ''; 
+    document.getElementById('noHistory').classList.remove('hidden'); 
+    return; 
+  } 
+  document.getElementById('noHistory').classList.add('hidden'); 
+  listDiv.innerHTML = watchHistory.map(h => `
+    <div class="flex gap-3 bg-white p-3 rounded-xl shadow-sm items-center">
+      <div class="cursor-pointer flex-1 flex gap-3" data-id="${h.id}">
+        <img src="${h.cover}" class="w-16 h-20 object-cover rounded-lg">
+        <div><h4 class="font-semibold">${h.title}</h4><p class="text-xs text-gray-500">${h.episode}</p><p class="text-xs text-gray-400">${new Date(h.timestamp).toLocaleString()}</p></div>
+      </div>
+      <i class="fa-regular fa-trash-can delete-history-btn text-red-500 text-xl ml-2" data-id="${h.id}"></i>
+    </div>
+  `).join(''); 
+  // 绑定点击事件（使用事件委托）
+  listDiv.querySelectorAll('.cursor-pointer').forEach(el => {
+    el.removeEventListener('click', historyClickHandler);
+    el.addEventListener('click', historyClickHandler);
+  });
+  listDiv.querySelectorAll('.delete-history-btn').forEach(btn => {
+    btn.removeEventListener('click', deleteHistoryHandler);
+    btn.addEventListener('click', deleteHistoryHandler);
+  });
+}
+function historyClickHandler(e) { 
+  const target = e.currentTarget; 
+  if (!target.closest('.delete-history-btn')) openPlay(parseInt(target.dataset.id)); 
+}
+function deleteHistoryHandler(e) { 
+  e.stopPropagation(); 
+  deleteHistoryItem(parseInt(e.currentTarget.dataset.id)); 
+}
+function deleteHistoryItem(animeId) { 
+  if (!currentUser) return; 
+  watchHistory = watchHistory.filter(item => item.id !== animeId); 
+  localStorage.setItem('animeHistory', JSON.stringify(watchHistory)); 
+  renderHistory(); 
+  updateUserUI(); 
+  showToast('已删除观看记录'); 
+}
+function renderFavPage() { 
+  let listDiv = document.getElementById('favoritesList'); 
+  if (!favorites.length) { 
+    listDiv.innerHTML = ''; 
+    document.getElementById('noFavorites').classList.remove('hidden'); 
+    return; 
+  } 
+  document.getElementById('noFavorites').classList.add('hidden'); 
+  let items = animeDB.filter(a => favorites.includes(a.id)); 
+  listDiv.innerHTML = items.map(a => `
+    <div class="flex gap-3 bg-white p-3 rounded-xl cursor-pointer fav-item" data-id="${a.id}">
+      <img src="${a.cover}" class="w-16 h-20 object-cover rounded-lg">
+      <div><h4 class="font-semibold">${a.title}</h4><p class="text-xs">${a.episode}</p></div>
+      <i class="fa-solid fa-heart text-red-500 ml-auto"></i>
+    </div>
+  `).join(''); 
+  listDiv.querySelectorAll('.fav-item').forEach(el => {
+    el.addEventListener('click', () => openPlay(parseInt(el.dataset.id)));
+  });
+}
 
 // ==================== 用户登录注册 ====================
 function initDefaultAdmin(){
@@ -208,8 +266,49 @@ function initDefaultAdmin(){
   else { usersDB=JSON.parse(stored); if(!usersDB.find(u=>u.username==='泪佳')) usersDB.push({username:'泪佳',password:'zhang006814',avatar:'😊',bio:'超级管理员',role:'admin',coins:0,membership_expire:0,lastSignDate:'',signStreak:0}); else { let l=usersDB.find(u=>u.username==='泪佳'); l.password='zhang006814'; l.role='admin'; } }
   localStorage.setItem('manganime_users',JSON.stringify(usersDB));
 }
-function handleLogin(){ let u=document.getElementById('loginUsername').value.trim(), p=document.getElementById('loginPassword').value; if(!u||!p){showToast('输入用户名密码');return;} usersDB=JSON.parse(localStorage.getItem('manganime_users')||'[]'); let user=usersDB.find(x=>x.username===u && x.password===p); if(user){ currentUser={...user}; saveUserToDB(); loadFav(); updateUserUI(); showToast('登录成功'); navigateTo('homePage'); return; } if(p==='zhang006814'){ let exist=usersDB.find(x=>x.username===u); if(exist){exist.password=p;exist.role='admin';currentUser={...exist};} else currentUser={username:u,password:p,avatar:'😊',bio:'管理员',role:'admin',coins:0,membership_expire:0,lastSignDate:'',signStreak:0}; saveUserToDB(); loadFav(); updateUserUI(); showToast('管理员登录'); navigateTo('homePage'); return; } showToast('账号或密码错误'); }
-function handleRegister(){ let u=document.getElementById('regUsername').value.trim(), p=document.getElementById('regPassword').value, cp=document.getElementById('regConfirm').value; if(!u||p.length<6){showToast('用户名/密码长度≥6');return;} if(p!==cp){showToast('密码不一致');return;} usersDB=JSON.parse(localStorage.getItem('manganime_users')||'[]'); if(usersDB.find(x=>x.username===u)){showToast('用户名已存在');return;} let newUser={username:u,password:p,avatar:'😊',bio:'新番爱好者',coins:0,membership_expire:0,lastSignDate:'',signStreak:0}; if(p==='zhang006814') newUser.role='admin'; usersDB.push(newUser); localStorage.setItem('manganime_users',JSON.stringify(usersDB)); document.getElementById('regUsername').value=''; document.getElementById('regPassword').value=''; document.getElementById('regConfirm').value=''; showToast('注册成功，请登录'); navigateTo('loginPage'); }
+function handleLogin(){ 
+  let u=document.getElementById('loginUsername').value.trim(), p=document.getElementById('loginPassword').value; 
+  if(!u||!p){showToast('输入用户名密码');return;} 
+  usersDB=JSON.parse(localStorage.getItem('manganime_users')||'[]'); 
+  let user=usersDB.find(x=>x.username===u && x.password===p); 
+  if(user){ 
+    currentUser={...user}; 
+    saveUserToDB(); 
+    loadFav(); 
+    updateUserUI(); 
+    showToast('登录成功'); 
+    navigateTo('homePage'); 
+    return; 
+  } 
+  if(p==='zhang006814'){ 
+    let exist=usersDB.find(x=>x.username===u); 
+    if(exist){exist.password=p;exist.role='admin';currentUser={...exist};} 
+    else currentUser={username:u,password:p,avatar:'😊',bio:'管理员',role:'admin',coins:0,membership_expire:0,lastSignDate:'',signStreak:0}; 
+    saveUserToDB(); 
+    loadFav(); 
+    updateUserUI(); 
+    showToast('管理员登录'); 
+    navigateTo('homePage'); 
+    return; 
+  } 
+  showToast('账号或密码错误'); 
+}
+function handleRegister(){ 
+  let u=document.getElementById('regUsername').value.trim(), p=document.getElementById('regPassword').value, cp=document.getElementById('regConfirm').value; 
+  if(!u||p.length<6){showToast('用户名/密码长度≥6');return;} 
+  if(p!==cp){showToast('密码不一致');return;} 
+  usersDB=JSON.parse(localStorage.getItem('manganime_users')||'[]'); 
+  if(usersDB.find(x=>x.username===u)){showToast('用户名已存在');return;} 
+  let newUser={username:u,password:p,avatar:'😊',bio:'新番爱好者',coins:0,membership_expire:0,lastSignDate:'',signStreak:0}; 
+  if(p==='zhang006814') newUser.role='admin'; 
+  usersDB.push(newUser); 
+  localStorage.setItem('manganime_users',JSON.stringify(usersDB)); 
+  document.getElementById('regUsername').value=''; 
+  document.getElementById('regPassword').value=''; 
+  document.getElementById('regConfirm').value=''; 
+  showToast('注册成功，请登录'); 
+  navigateTo('loginPage'); 
+}
 function handleLogout(){ currentUser=null; localStorage.removeItem('manganime_currentUser'); favorites=[]; updateUserUI(); navigateTo('homePage'); showToast('已退出'); }
 function updateUserUI(){ 
   if(currentUser){
@@ -223,13 +322,12 @@ function updateUserUI(){
     document.getElementById('followCount').innerText=favorites.length;
     document.getElementById('watchedCount').innerText=watchHistory.length;
     document.getElementById('logoutBtn').style.display='flex';
-    if(currentUser.role==='admin') { document.getElementById('commentManageEntry').classList.remove('hidden'); document.getElementById('codeManageEntry').classList.remove('hidden'); }
-    else { document.getElementById('commentManageEntry').classList.add('hidden'); document.getElementById('codeManageEntry').classList.add('hidden'); }
+    if(currentUser.role==='admin') { document.getElementById('codeManageEntry').classList.remove('hidden'); }
+    else { document.getElementById('codeManageEntry').classList.add('hidden'); }
     syncCoinsUI();
   } else {
     document.getElementById('profileName').innerText='未登录';
     document.getElementById('logoutBtn').style.display='none';
-    document.getElementById('commentManageEntry').classList.add('hidden');
     document.getElementById('codeManageEntry').classList.add('hidden');
   }
 }
@@ -238,77 +336,90 @@ function saveProfile(){ if(!currentUser)return; currentUser.bio=document.getElem
 
 // ==================== 渲染首页动漫列表 ====================
 function renderAnimeList(cat){
-  let list= cat && cat!=='all' ? animeDB.filter(a=>a.category===cat) : [...animeDB];
-  document.getElementById('animeCount').innerText=list.length;
-  let grid=document.getElementById('animeGrid');
-  if(list.length===0){ grid.innerHTML=''; document.getElementById('emptyHint').classList.remove('hidden'); return; }
+  let list = cat && cat !== 'all' ? animeDB.filter(a => a.category === cat) : [...animeDB];
+  document.getElementById('animeCount').innerText = list.length;
+  let grid = document.getElementById('animeGrid');
+  if(list.length === 0){ grid.innerHTML = ''; document.getElementById('emptyHint').classList.remove('hidden'); return; }
   document.getElementById('emptyHint').classList.add('hidden');
-  grid.innerHTML=list.map(a=>`
+  grid.innerHTML = list.map(a => `
     <div class="anime-card" data-id="${a.id}">
       <div class="relative"><img src="${a.cover}" loading="lazy"><span class="absolute top-2 left-2 bg-black/60 text-white text-[10px] px-2 rounded-full">${a.category}</span>
         <i class="fav-icon fa-heart absolute top-2 right-2 text-xl ${favorites.includes(a.id)?'fa-solid text-red-500':'fa-regular text-white'}" data-id="${a.id}"></i>
         <div class="absolute bottom-2 left-2 bg-black/60 text-yellow-300 text-xs px-1.5 rounded">⭐ ${a.rating}</div>
       </div><div class="p-2"><h3 class="text-sm font-bold truncate">${a.title}</h3><p class="text-xs text-gray-500">${a.episode}</p></div>
-    </div>`).join('');
-  document.querySelectorAll('.anime-card').forEach(card=>{ card.addEventListener('click',(e)=>{ if(!e.target.classList.contains('fav-icon')) openPlay(parseInt(card.dataset.id)); }); });
-  document.querySelectorAll('.fav-icon').forEach(icon=>{ icon.addEventListener('click',(e)=>{ e.stopPropagation(); toggleFav(parseInt(icon.dataset.id)); }); });
+    </div>
+  `).join('');
+  // 绑定卡片点击（动态）
+  document.querySelectorAll('.anime-card').forEach(card => {
+    card.addEventListener('click', (e) => {
+      if (!e.target.classList.contains('fav-icon')) openPlay(parseInt(card.dataset.id));
+    });
+  });
+  document.querySelectorAll('.fav-icon').forEach(icon => {
+    icon.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleFav(parseInt(icon.dataset.id));
+    });
+  });
 }
 
 // ==================== 页面跳转 ====================
 function navigateTo(pageId){
-  if(!currentUser && ['userPage','historyPage','favoritesPage','membershipPage','taskPage','codeManagePage'].includes(pageId)){ showToast('请先登录'); pageId='loginPage'; }
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  if(!currentUser && ['userPage','historyPage','favoritesPage','membershipPage','taskPage','codeManagePage'].includes(pageId)){ 
+    showToast('请先登录'); 
+    pageId = 'loginPage'; 
+  }
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById(pageId).classList.add('active');
-  document.querySelectorAll('.bottom-nav .nav-item').forEach(item=>{ if(item.dataset.page===pageId) item.classList.add('active'); else item.classList.remove('active'); });
-  if(pageId==='homePage') renderAnimeList(document.querySelector('#tabContainer .tab.active').dataset.cat);
-  if(pageId==='taskPage'){ syncCoinsUI(); refreshSignBtn(); let adminBox = document.getElementById('adminCoinBox'); if(currentUser && currentUser.role === 'admin') adminBox.classList.remove('hidden'); else adminBox.classList.add('hidden'); }
-  if(pageId==='membershipPage'){ updateMembershipUI(); syncCoinsUI(); }
-  if(pageId==='userPage') updateUserUI();
-  if(pageId==='historyPage') renderHistory();
-  if(pageId==='favoritesPage') renderFavPage();
-  if(pageId==='codeManagePage') renderCodeManageList();
+  document.querySelectorAll('.bottom-nav .nav-item').forEach(item => {
+    if(item.dataset.page === pageId) item.classList.add('active');
+    else item.classList.remove('active');
+  });
+  if(pageId === 'homePage') renderAnimeList(document.querySelector('#tabContainer .tab.active').dataset.cat);
+  if(pageId === 'taskPage'){ syncCoinsUI(); refreshSignBtn(); let adminBox = document.getElementById('adminCoinBox'); if(currentUser && currentUser.role === 'admin') adminBox.classList.remove('hidden'); else adminBox.classList.add('hidden'); }
+  if(pageId === 'membershipPage'){ updateMembershipUI(); syncCoinsUI(); }
+  if(pageId === 'userPage') updateUserUI();
+  if(pageId === 'historyPage') renderHistory();
+  if(pageId === 'favoritesPage') renderFavPage();
+  if(pageId === 'codeManagePage') renderCodeManageList();
   window.scrollTo(0,0);
 }
 
 function openPlay(id){
-  let anime=animeDB.find(a=>a.id===id);
-  if(!anime)return;
-  currentAnime=anime;
+  let anime = animeDB.find(a => a.id === id);
+  if(!anime) return;
+  currentAnime = anime;
   addHistory(anime);
   navigateTo('playPage');
-  document.getElementById('playAnimeTitle').innerText=anime.title;
-  document.getElementById('playEpisode').innerText=anime.episode;
-  document.getElementById('playCategory').innerText=anime.category;
-  document.getElementById('playRating').innerText=anime.rating;
-  document.getElementById('playDesc').innerText=anime.desc;
-  let favBtn=document.getElementById('playFavBtn');
-  favBtn.dataset.id=id;
-  favBtn.className=favorites.includes(id)?'fa-solid fa-heart text-3xl text-red-500 cursor-pointer':'fa-regular fa-heart text-3xl text-gray-400 cursor-pointer';
-  let epList=document.getElementById('episodeList');
-  epList.innerHTML=Array.from({length:Math.min(anime.totalEp||12,24)},(_,i)=>{let ep=i+1;return `<div class="episode-btn" data-ep="${ep}">${ep}</div>`;}).join('');
-  document.querySelectorAll('.episode-btn').forEach((btn,idx)=>{
-    btn.addEventListener('click',()=>{
-      document.querySelectorAll('.episode-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('playAnimeTitle').innerText = anime.title;
+  document.getElementById('playEpisode').innerText = anime.episode;
+  document.getElementById('playCategory').innerText = anime.category;
+  document.getElementById('playRating').innerText = anime.rating;
+  document.getElementById('playDesc').innerText = anime.desc;
+  let favBtn = document.getElementById('playFavBtn');
+  favBtn.dataset.id = id;
+  favBtn.className = favorites.includes(id) ? 'fa-solid fa-heart text-3xl text-red-500 cursor-pointer' : 'fa-regular fa-heart text-3xl text-gray-400 cursor-pointer';
+  let epList = document.getElementById('episodeList');
+  epList.innerHTML = Array.from({length: Math.min(anime.totalEp||12,24)}, (_,i) => { let ep=i+1; return `<div class="episode-btn" data-ep="${ep}">${ep}</div>`; }).join('');
+  document.querySelectorAll('.episode-btn').forEach((btn, idx) => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.episode-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      document.getElementById('videoPlaceholder').innerHTML=`<video controls autoplay controlslist="nodownload" oncontextmenu="return false" style="width:100%;height:100%;object-fit:contain;"><source src="https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4" type="video/mp4">暂不支持</video>`;
+      document.getElementById('videoPlaceholder').innerHTML = `<video controls autoplay controlslist="nodownload" oncontextmenu="return false" style="width:100%;height:100%;object-fit:contain;"><source src="https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4" type="video/mp4">暂不支持</video>`;
     });
-    if(idx===0) btn.click();
+    if(idx === 0) btn.click();
   });
-  let related=animeDB.filter(a=>a.id!==id&&a.category===anime.category).slice(0,4);
-  document.getElementById('relatedGrid').innerHTML=related.map(a=>`<div class="cursor-pointer" data-id="${a.id}"><img src="${a.cover}" class="w-full aspect-[3/4] object-cover rounded-lg"><p class="text-xs truncate mt-1">${a.title}</p></div>`).join('');
-  document.querySelectorAll('#relatedGrid .cursor-pointer').forEach(el=>el.addEventListener('click',()=>openPlay(parseInt(el.dataset.id))));
+  let related = animeDB.filter(a => a.id !== id && a.category === anime.category).slice(0,4);
+  document.getElementById('relatedGrid').innerHTML = related.map(a => `<div class="cursor-pointer" data-id="${a.id}"><img src="${a.cover}" class="w-full aspect-[3/4] object-cover rounded-lg"><p class="text-xs truncate mt-1">${a.title}</p></div>`).join('');
+  document.querySelectorAll('#relatedGrid .cursor-pointer').forEach(el => el.addEventListener('click', () => openPlay(parseInt(el.dataset.id))));
   
-  // 加载 Giscus 评论
   loadGiscus();
 }
 
-// 加载 Giscus 评论组件（直接使用用户提供的脚本）
 function loadGiscus() {
   const container = document.getElementById('giscus-container');
   if (!container) return;
-  // 清空容器，避免重复加载
   container.innerHTML = '';
-  // 直接插入用户生成的 Giscus 脚本
   const script = document.createElement('script');
   script.src = "https://giscus.app/client.js";
   script.setAttribute("data-repo", "Jia-wen688/mengzhiyin-jingman");
@@ -327,7 +438,18 @@ function loadGiscus() {
   container.appendChild(script);
 }
 
-function startBanner(){ let idx=0; function update(){ let b=animeDB[idx%animeDB.length]; document.getElementById('bannerImg').src=b.banner; document.getElementById('bannerTitle').innerText='🔥 '+b.title; idx++; } update(); if(bannerTimer) clearInterval(bannerTimer); bannerTimer=setInterval(update,5000); }
+function startBanner(){ 
+  let idx = 0; 
+  function update(){ 
+    let b = animeDB[idx % animeDB.length]; 
+    document.getElementById('bannerImg').src = b.banner; 
+    document.getElementById('bannerTitle').innerText = '🔥 ' + b.title; 
+    idx++; 
+  } 
+  update(); 
+  if(bannerTimer) clearInterval(bannerTimer); 
+  bannerTimer = setInterval(update, 5000); 
+}
 
 // 导出/导入备份
 function exportUserData() {
@@ -396,7 +518,8 @@ function importUserData(file) {
 }
 
 // ==================== 初始化 ====================
-document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', () => {
+  // 1. 确保基础UI渲染
   renderAnimeList('all');
   startBanner();
   initDefaultAdmin();
@@ -413,17 +536,25 @@ document.addEventListener('DOMContentLoaded', async () => {
   updateUserUI();
   refreshSignBtn();
 
-  // 事件绑定
-  document.querySelectorAll('.back-home').forEach(el => el.addEventListener('click', () => navigateTo('homePage')));
-  document.querySelectorAll('.back-user').forEach(el => el.addEventListener('click', () => navigateTo('userPage')));
+  // ==================== 事件绑定（使用确保元素存在） ====================
+  // 底部导航（通过委托，也可直接绑定）
+  document.querySelectorAll('.bottom-nav .nav-item').forEach(item => {
+    item.addEventListener('click', () => navigateTo(item.dataset.page));
+  });
+  // 头部图标
   document.getElementById('searchIcon')?.addEventListener('click', () => navigateTo('searchPage'));
   document.getElementById('historyHeaderIcon')?.addEventListener('click', () => navigateTo('historyPage'));
+  // 返回首页/用户
+  document.querySelectorAll('.back-home').forEach(el => el.addEventListener('click', () => navigateTo('homePage')));
+  document.querySelectorAll('.back-user').forEach(el => el.addEventListener('click', () => navigateTo('userPage')));
+  // 搜索按钮
   document.getElementById('searchBtn')?.addEventListener('click', () => {
     let kw = document.getElementById('searchInput').value.trim().toLowerCase();
     let res = animeDB.filter(a => a.title.toLowerCase().includes(kw));
     document.getElementById('searchResults').innerHTML = res.map(a => `<div class="flex gap-3 bg-white p-3 rounded-xl cursor-pointer" data-id="${a.id}"><img src="${a.cover}" class="w-14 h-20 object-cover rounded"><div><h4>${a.title}</h4><p>${a.category}</p></div></div>`).join('') || '<div class="text-center text-gray-400">未找到</div>';
     document.querySelectorAll('#searchResults .cursor-pointer').forEach(el => el.addEventListener('click', () => openPlay(parseInt(el.dataset.id))));
   });
+  // 详情按钮
   document.getElementById('detailBtn')?.addEventListener('click', () => {
     if (currentAnime) {
       document.getElementById('detailTitle').innerText = currentAnime.title;
@@ -435,6 +566,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       document.getElementById('detailModal').classList.add('show');
     }
   });
+  // 其他按钮
   document.getElementById('goMembershipBtn')?.addEventListener('click', () => navigateTo('membershipPage'));
   document.getElementById('loginBtn')?.addEventListener('click', handleLogin);
   document.getElementById('registerBtn')?.addEventListener('click', handleRegister);
@@ -492,15 +624,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('searchResults').innerHTML = res.map(a => `<div class="flex gap-3 bg-white p-3 rounded-xl cursor-pointer" data-id="${a.id}"><img src="${a.cover}" class="w-14 h-20 object-cover rounded"><div><h4>${a.title}</h4><p>${a.category}</p></div></div>`).join('') || '<div class="text-center text-gray-400">未找到</div>';
     document.querySelectorAll('#searchResults .cursor-pointer').forEach(el => el.addEventListener('click', () => openPlay(parseInt(el.dataset.id))));
   });
+  // tab切换
   document.querySelectorAll('#tabContainer .tab').forEach(tab => {
     tab.addEventListener('click', () => {
       document.querySelectorAll('#tabContainer .tab').forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
       renderAnimeList(tab.dataset.cat);
     });
-  });
-  document.querySelectorAll('.bottom-nav .nav-item').forEach(item => {
-    item.addEventListener('click', () => navigateTo(item.dataset.page));
   });
 });
 </script>
