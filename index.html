@@ -3,12 +3,42 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
-  <title>漫境 · 追番乐园（云端评论可选）</title>
+  <title>漫境 · 追番乐园</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    *{margin:0;padding:0;box-sizing:border-box}body{background:#f7f9fc;font-family:system-ui;padding-bottom:70px}@media(min-width:768px){body{padding-bottom:0}.bottom-nav{max-width:600px;left:50%;transform:translateX(-50%);border-radius:30px 30px 0 0}}.tab{font-weight:500;color:#6b7280;cursor:pointer;padding:8px 4px;white-space:nowrap;font-size:0.9rem;position:relative}.tab.active{color:#dc2626;font-weight:600}.tab.active::after{content:'';position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:20px;height:3px;background:#dc2626;border-radius:10px}.anime-card{cursor:pointer;border-radius:16px;overflow:hidden;background:white;box-shadow:0 4px 12px rgba(0,0,0,0.05);transition:transform 0.1s}.anime-card:active{transform:scale(0.97)}.anime-card img{width:100%;aspect-ratio:3/4;object-fit:cover}.page{display:none}.page.active{display:block}.bottom-nav{position:fixed;bottom:0;left:0;width:100%;background:rgba(255,255,255,0.96);backdrop-filter:blur(10px);border-top:1px solid #e5e7eb;z-index:30;display:flex}.bottom-nav .nav-item{flex:1;text-align:center;padding:8px 0;cursor:pointer;color:#6b7280}.bottom-nav .nav-item.active{color:#dc2626;background:#fff0f0}.episode-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:10px}.episode-btn{background:#f1f5f9;border-radius:12px;padding:8px;text-align:center;cursor:pointer}.episode-btn.active{background:#dc2626;color:white}.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#1f2937;color:white;padding:10px 24px;border-radius:40px;font-size:14px;z-index:200;opacity:0;transition:0.2s;pointer-events:none}.toast.show{opacity:1}.avatar-option{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.8rem;background:#f1f5f9;cursor:pointer;border:3px solid transparent}.avatar-option.selected{border-color:#dc2626;background:#fee2e2}.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:300;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:0.25s;backdrop-filter:blur(4px)}.modal-overlay.show{opacity:1;pointer-events:auto}.modal-dialog{background:white;border-radius:32px;padding:24px;width:85%;max-width:400px;transform:scale(0.9);transition:transform 0.3s;max-height:80vh;overflow-y:auto}.modal-overlay.show .modal-dialog{transform:scale(1)}.admin-badge{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;background:#dc2626;color:white;font-size:12px;border-radius:50%;margin-left:6px}.vip-badge{background:#ef4444;color:white;font-size:11px;font-weight:bold;padding:2px 6px;border-radius:20px;margin-left:8px}.video-container video{width:100%;height:100%;object-fit:contain;background:#000}.coin-badge{background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#2d2a1e;font-weight:bold;padding:4px 12px;border-radius:30px;display:inline-flex;align-items:center;gap:6px;font-size:0.8rem}.comment-username-vip{color:#eab308;font-weight:bold}.delete-history-btn,.delete-code-btn{cursor:pointer}.code-item{background:#f9fafb;border-radius:12px;padding:10px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{background:#f7f9fc;font-family:system-ui;padding-bottom:70px}
+    @media(min-width:768px){body{padding-bottom:0}.bottom-nav{max-width:600px;left:50%;transform:translateX(-50%);border-radius:30px 30px 0 0}}
+    .tab{font-weight:500;color:#6b7280;cursor:pointer;padding:8px 4px;white-space:nowrap;font-size:0.9rem;position:relative}
+    .tab.active{color:#dc2626;font-weight:600}
+    .tab.active::after{content:'';position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:20px;height:3px;background:#dc2626;border-radius:10px}
+    .anime-card{cursor:pointer;border-radius:16px;overflow:hidden;background:white;box-shadow:0 4px 12px rgba(0,0,0,0.05);transition:transform 0.1s}
+    .anime-card:active{transform:scale(0.97)}
+    .anime-card img{width:100%;aspect-ratio:3/4;object-fit:cover}
+    .page{display:none}
+    .page.active{display:block}
+    .bottom-nav{position:fixed;bottom:0;left:0;width:100%;background:rgba(255,255,255,0.96);backdrop-filter:blur(10px);border-top:1px solid #e5e7eb;z-index:30;display:flex}
+    .bottom-nav .nav-item{flex:1;text-align:center;padding:8px 0;cursor:pointer;color:#6b7280}
+    .bottom-nav .nav-item.active{color:#dc2626;background:#fff0f0}
+    .episode-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:10px}
+    .episode-btn{background:#f1f5f9;border-radius:12px;padding:8px;text-align:center;cursor:pointer}
+    .episode-btn.active{background:#dc2626;color:white}
+    .toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#1f2937;color:white;padding:10px 24px;border-radius:40px;font-size:14px;z-index:200;opacity:0;transition:0.2s;pointer-events:none}
+    .toast.show{opacity:1}
+    .avatar-option{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.8rem;background:#f1f5f9;cursor:pointer;border:3px solid transparent}
+    .avatar-option.selected{border-color:#dc2626;background:#fee2e2}
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:300;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:0.25s;backdrop-filter:blur(4px)}
+    .modal-overlay.show{opacity:1;pointer-events:auto}
+    .modal-dialog{background:white;border-radius:32px;padding:24px;width:85%;max-width:400px;transform:scale(0.9);transition:transform 0.3s;max-height:80vh;overflow-y:auto}
+    .modal-overlay.show .modal-dialog{transform:scale(1)}
+    .admin-badge{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;background:#dc2626;color:white;font-size:12px;border-radius:50%;margin-left:6px}
+    .vip-badge{background:#ef4444;color:white;font-size:11px;font-weight:bold;padding:2px 6px;border-radius:20px;margin-left:8px}
+    .video-container video{width:100%;height:100%;object-fit:contain;background:#000}
+    .coin-badge{background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#2d2a1e;font-weight:bold;padding:4px 12px;border-radius:30px;display:inline-flex;align-items:center;gap:6px;font-size:0.8rem}
+    .comment-username-vip{color:#eab308;font-weight:bold}
+    .delete-history-btn,.delete-code-btn{cursor:pointer}
+    .code-item{background:#f9fafb;border-radius:12px;padding:10px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
   </style>
 </head>
 <body>
@@ -66,7 +96,7 @@
 </footer>
 
 <script>
-// ==================== 动漫数据 ====================
+// ---------- 动漫数据 ----------
 const animeDB = [
   { id:1, title:'脱离了A级队伍的我...', category:'日漫', episode:'更新至24话', totalEp:24, rating:9.0, desc:'红魔导士优克脱离队伍后与美少女徒弟再战迷宫', cover:'https://picsum.photos/400/533?random=1', banner:'https://picsum.photos/800/350?random=101', director:'小野勝巳', year:'2025' },
   { id:2, title:'鬼灭之刃 游郭篇', category:'日漫', episode:'全11话', totalEp:11, rating:9.5, desc:'音柱对决上弦之鬼', cover:'https://picsum.photos/400/533?random=2', banner:'https://picsum.photos/800/350?random=102', director:'外崎春雄', year:'2021' },
@@ -82,13 +112,13 @@ const animeDB = [
   { id:12, title:'进击的巨人', category:'日漫', episode:'完结', totalEp:87, rating:9.9, desc:'自由与地鸣', cover:'https://picsum.photos/400/533?random=12', banner:'https://picsum.photos/800/350?random=112', director:'林祐一郎', year:'2013' }
 ];
 
-// ==================== Supabase 配置（静默失败） ====================
-const SUPABASE_URL = "https://cifkuhaxpbrfgwmlvstp.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNpZmt1aGF4cGJyZmd3bWx2c3RwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzMzU4NDIsImV4cCI6MjA5NDkxMTg0Mn0.G9LvKJC_Eb5exh8ldn4a4v1gcvequH0Ec66VxNSKuH4";
+// ==================== Supabase 配置（可选，不影响基础功能） ====================
 let supabase = null;
 try {
+  const SUPABASE_URL = "https://cifkuhaxpbrfgwmlvstp.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNpZmt1aGF4cGJyZmd3bWx2c3RwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzMzU4NDIsImV4cCI6MjA5NDkxMTg0Mn0.G9LvKJC_Eb5exh8ldn4a4v1gcvequH0Ec66VxNSKuH4";
   supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-} catch(e) { console.warn("Supabase 初始化失败", e); }
+} catch(e) { console.warn("Supabase 初始化失败"); }
 
 // ==================== 全局变量 ====================
 let currentUser = null;
@@ -102,7 +132,13 @@ let giftCodes = [];
 // ==================== 辅助函数 ====================
 function showToast(msg) { let t=document.getElementById('toast'); t.innerText=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2000); }
 function syncCoinsUI() { if(currentUser){ let c=currentUser.coins||0; document.querySelectorAll('#userCoinDisplay, #taskCoins, #memberCoinsAmount').forEach(el=>el.innerText=c); } }
-function saveUserToDB() { let idx=usersDB.findIndex(u=>u.username===currentUser?.username); if(idx!==-1) usersDB[idx]={...usersDB[idx], ...currentUser}; else if(currentUser) usersDB.push(currentUser); localStorage.setItem('manganime_users',JSON.stringify(usersDB)); localStorage.setItem('manganime_currentUser',JSON.stringify(currentUser)); }
+function saveUserToDB() { 
+  let idx=usersDB.findIndex(u=>u.username===currentUser?.username); 
+  if(idx!==-1) usersDB[idx]={...usersDB[idx], ...currentUser}; 
+  else if(currentUser) usersDB.push(currentUser); 
+  localStorage.setItem('manganime_users',JSON.stringify(usersDB)); 
+  localStorage.setItem('manganime_currentUser',JSON.stringify(currentUser)); 
+}
 function updateMembershipUI() { if(!currentUser) return; let exp=currentUser.membership_expire||0; let isVip=exp>Date.now(); document.getElementById('memberStatusText').innerText=isVip?'✨VIP会员✨':'普通用户'; document.getElementById('memberExpireText').innerText=isVip?`到期:${new Date(exp).toLocaleDateString()}`:'未开通'; }
 function exchangeMembership(days,cost){ if(!currentUser){showToast('请先登录');return;} if((currentUser.coins||0)<cost){showToast('金币不足');return;} currentUser.coins-=cost; let newExp=Math.max(Date.now(), currentUser.membership_expire||0)+days*86400000; currentUser.membership_expire=newExp; saveUserToDB(); updateMembershipUI(); syncCoinsUI(); showToast(`兑换${days}天会员成功`); if(currentAnime) renderComments(); updateUserUI(); }
 function checkSign(){ if(!currentUser) return false; let today=new Date().toDateString(); let last=currentUser.lastSignDate||''; let streak=currentUser.signStreak||0; if(last===today){showToast('今日已签到');return false;} let isConsecutive=last && (new Date(last).getTime()+86400000)>=new Date().getTime(); let newStreak=isConsecutive?streak+1:1; let reward=newStreak<=3?10:20; currentUser.coins=(currentUser.coins||0)+reward; currentUser.lastSignDate=today; currentUser.signStreak=newStreak; saveUserToDB(); syncCoinsUI(); showToast(`签到+${reward}金币，连续${newStreak}天`); document.getElementById('streakText').innerText=`连续${newStreak}天`; return true; }
@@ -113,100 +149,17 @@ function toggleFav(id){ if(!currentUser){showToast('请先登录');return;} let 
 function updateFavIcons(){ document.querySelectorAll('.fav-icon').forEach(icon=>{ let id=Number(icon.dataset.id); icon.className=favorites.includes(id)?'fav-icon fa-solid fa-heart absolute top-2 right-2 text-xl text-red-500':'fav-icon fa-regular fa-heart absolute top-2 right-2 text-xl text-white'; }); }
 function isUserVip(username) { let user = usersDB.find(u => u.username === username); if (!user) return false; let expire = user.membership_expire || 0; return expire > Date.now(); }
 
-// ==================== 云端评论操作（全部包裹 try-catch，失败时静默降级） ====================
-async function loadComments(anime_id) {
-  if (!supabase) return [];
-  try {
-    let { data, error } = await supabase.from('comments').select('*').eq('anime_id', anime_id).order('created_at', { ascending: true });
-    if (error) return [];
-    return data;
-  } catch (e) { return []; }
-}
-async function addComment(anime_id, username, content) {
-  if (!supabase) return;
-  try {
-    await supabase.from('comments').insert({ anime_id, username, content, created_at: Date.now() });
-  } catch(e) { console.warn(e); }
-  if (currentAnime && currentAnime.id === anime_id) renderComments();
-}
-async function deleteComment(comment_id) {
-  if (!supabase || currentUser?.role !== 'admin') return;
-  try {
-    await supabase.from('comments').delete().eq('id', comment_id);
-  } catch(e) { console.warn(e); }
-  if (currentAnime) renderComments();
-}
-async function renderComments() {
-  if (!currentAnime) return;
-  let comments = await loadComments(currentAnime.id);
-  let listDiv = document.getElementById('commentList');
-  if (!comments.length) { listDiv.innerHTML = '<p class="text-center text-gray-400 py-2">✨ 暂无评论，抢个沙发吧</p>'; return; }
-  let html = '';
-  for (let c of comments) {
-    let isVip = isUserVip(c.username);
-    let userNameHtml = isVip ? `<span class="comment-username-vip">${c.username}</span> <span class="vip-badge" style="background:#ef4444; color:white; font-size:11px; padding:2px 6px; border-radius:20px; margin-left:4px;">VIP</span>` : `<span>${c.username}</span>`;
-    html += `<div class="flex gap-2"><div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">${c.username[0]}</div><div><div class="flex items-center gap-1">${userNameHtml}<span class="text-xs text-gray-400 ml-2">${new Date(c.created_at).toLocaleString()}</span></div><p class="text-sm">${c.content}</p></div></div>`;
-  }
-  listDiv.innerHTML = html;
-}
-async function postComment() {
-  if (!currentUser) { showToast('请先登录'); return; }
-  let text = document.getElementById('commentInput').value.trim();
-  if (!text) return;
-  await addComment(currentAnime.id, currentUser.username, text);
-  document.getElementById('commentInput').value = '';
-  await renderComments();
-  showToast('评论成功');
-}
-async function renderAllComments() {
-  let all = [];
-  for (let anime of animeDB) {
-    let comments = await loadComments(anime.id);
-    for (let c of comments) {
-      all.push({ ...c, animeTitle: anime.title });
-    }
-  }
-  let listDiv = document.getElementById('allCommentsList');
-  if (!all.length) { listDiv.innerHTML = ''; document.getElementById('noCommentsMsg').classList.remove('hidden'); return; }
-  document.getElementById('noCommentsMsg').classList.add('hidden');
-  listDiv.innerHTML = all.map(c => `<div class="bg-white p-3 rounded-xl shadow-sm"><div class="flex justify-between"><span>[${c.animeTitle}] ${c.username} ${new Date(c.created_at).toLocaleString()}</span><i class="fa-solid fa-trash text-red-400 cursor-pointer delete-cmt" data-id="${c.id}"></i></div><p class="text-sm">${c.content}</p></div>`).join('');
-  document.querySelectorAll('.delete-cmt').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      if (currentUser?.role !== 'admin') return;
-      let commentId = parseInt(btn.dataset.id);
-      await deleteComment(commentId);
-      renderAllComments();
-      if (currentAnime && currentAnime.id === commentId) renderComments();
-      showToast('评论已删除');
-    });
-  });
-}
+// ==================== 云端评论操作（全部静默，不阻塞） ====================
+async function loadComments(anime_id) { if (!supabase) return []; try { let { data, error } = await supabase.from('comments').select('*').eq('anime_id', anime_id).order('created_at', { ascending: true }); if (error) return []; return data; } catch(e) { return []; } }
+async function addComment(anime_id, username, content) { if (!supabase) return; try { await supabase.from('comments').insert({ anime_id, username, content, created_at: Date.now() }); } catch(e) { console.warn(e); } if (currentAnime && currentAnime.id === anime_id) renderComments(); }
+async function deleteComment(comment_id) { if (!supabase || currentUser?.role !== 'admin') return; try { await supabase.from('comments').delete().eq('id', comment_id); } catch(e) { console.warn(e); } if (currentAnime) renderComments(); }
+async function renderComments() { if (!currentAnime) return; let comments = await loadComments(currentAnime.id); let listDiv = document.getElementById('commentList'); if (!comments.length) { listDiv.innerHTML = '<p class="text-center text-gray-400 py-2">✨ 暂无评论，抢个沙发吧</p>'; return; } let html = ''; for (let c of comments) { let isVip = isUserVip(c.username); let userNameHtml = isVip ? `<span class="comment-username-vip">${c.username}</span> <span class="vip-badge" style="background:#ef4444; color:white; font-size:11px; padding:2px 6px; border-radius:20px; margin-left:4px;">VIP</span>` : `<span>${c.username}</span>`; html += `<div class="flex gap-2"><div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">${c.username[0]}</div><div><div class="flex items-center gap-1">${userNameHtml}<span class="text-xs text-gray-400 ml-2">${new Date(c.created_at).toLocaleString()}</span></div><p class="text-sm">${c.content}</p></div></div>`; } listDiv.innerHTML = html; }
+async function postComment() { if (!currentUser) { showToast('请先登录'); return; } let text = document.getElementById('commentInput').value.trim(); if (!text) return; await addComment(currentAnime.id, currentUser.username, text); document.getElementById('commentInput').value = ''; await renderComments(); showToast('评论成功'); }
+async function renderAllComments() { let all = []; for (let anime of animeDB) { let comments = await loadComments(anime.id); for (let c of comments) { all.push({ ...c, animeTitle: anime.title }); } } let listDiv = document.getElementById('allCommentsList'); if (!all.length) { listDiv.innerHTML = ''; document.getElementById('noCommentsMsg').classList.remove('hidden'); return; } document.getElementById('noCommentsMsg').classList.add('hidden'); listDiv.innerHTML = all.map(c => `<div class="bg-white p-3 rounded-xl shadow-sm"><div class="flex justify-between"><span>[${c.animeTitle}] ${c.username} ${new Date(c.created_at).toLocaleString()}</span><i class="fa-solid fa-trash text-red-400 cursor-pointer delete-cmt" data-id="${c.id}"></i></div><p class="text-sm">${c.content}</p></div>`).join(''); document.querySelectorAll('.delete-cmt').forEach(btn => { btn.addEventListener('click', async () => { if (currentUser?.role !== 'admin') return; let commentId = parseInt(btn.dataset.id); await deleteComment(commentId); renderAllComments(); if (currentAnime && currentAnime.id === commentId) renderComments(); showToast('评论已删除'); }); }); }
 
-// ==================== 用户云端操作（静默失败） ====================
-async function loadUser(username) {
-  if (!supabase) return null;
-  try {
-    let { data, error } = await supabase.from('users').select('*').eq('username', username).single();
-    if (error) return null;
-    return data;
-  } catch (e) { return null; }
-}
-async function saveUser(user) {
-  if (!supabase) return;
-  try {
-    await supabase.from('users').upsert({
-      username: user.username,
-      password: user.password,
-      coins: user.coins || 0,
-      membership_expire: user.membership_expire || 0,
-      avatar: user.avatar || '😊',
-      bio: user.bio || '追番爱好者',
-      role: user.role || 'user',
-      sign_streak: user.signStreak || 0,
-      last_sign_date: user.lastSignDate || ''
-    });
-  } catch(e) { console.warn(e); }
-}
+// ==================== 用户云端操作（静默） ====================
+async function loadUser(username) { if (!supabase) return null; try { let { data, error } = await supabase.from('users').select('*').eq('username', username).single(); if (error) return null; return data; } catch(e) { return null; } }
+async function saveUser(user) { if (!supabase) return; try { await supabase.from('users').upsert({ username: user.username, password: user.password, coins: user.coins||0, membership_expire: user.membership_expire||0, avatar: user.avatar||'😊', bio: user.bio||'追番爱好者', role: user.role||'user', sign_streak: user.signStreak||0, last_sign_date: user.lastSignDate||'' }); } catch(e) { console.warn(e); } }
 
 // ==================== 本地存储操作（历史、追番、卡密） ====================
 function addHistory(anime) { watchHistory=watchHistory.filter(h=>h.id!==anime.id); watchHistory.unshift({...anime,timestamp:Date.now()}); if(watchHistory.length>20)watchHistory.pop(); localStorage.setItem('animeHistory',JSON.stringify(watchHistory)); }
@@ -291,7 +244,7 @@ function openPlay(id) {
   renderComments();
 }
 
-// ==================== 用户登录注册 ====================
+// ==================== 用户登录注册（本地优先） ====================
 function initDefaultAdmin() {
   let stored = localStorage.getItem('manganime_users');
   if (!stored) {
@@ -312,18 +265,13 @@ async function handleLogin() {
   let u = document.getElementById('loginUsername').value.trim();
   let p = document.getElementById('loginPassword').value;
   if (!u || !p) { showToast('输入用户名密码'); return; }
-  // 先检查本地
+  // 优先从本地验证
   let localUser = usersDB.find(x => x.username === u && x.password === p);
   if (localUser) {
     currentUser = { ...localUser };
-    // 尝试同步云端（不阻塞）
+    // 异步更新云端（不等待）
     if (supabase) {
-      let cloud = await loadUser(u);
-      if (cloud) {
-        currentUser = { ...cloud };
-        currentUser.lastSignDate = currentUser.last_sign_date;
-        currentUser.signStreak = currentUser.sign_streak;
-      }
+      loadUser(u).then(cloud => { if (cloud) { currentUser = { ...cloud, ...currentUser }; saveUserToDB(); updateUserUI(); } });
     }
     favorites = JSON.parse(localStorage.getItem('fav_'+currentUser.username) || '[]');
     watchHistory = JSON.parse(localStorage.getItem('animeHistory') || '[]');
@@ -407,16 +355,73 @@ function saveProfile() { if (!currentUser) return; currentUser.bio = document.ge
 function startBanner() { let idx=0; function update(){ let b=animeDB[idx%animeDB.length]; document.getElementById('bannerImg').src=b.banner; document.getElementById('bannerTitle').innerText='🔥 '+b.title; idx++; } update(); if(bannerTimer) clearInterval(bannerTimer); bannerTimer=setInterval(update,5000); }
 
 // 导出/导入备份
-function exportUserData() { /* 与之前相同，省略以节省篇幅，实际功能完整 */ }
-function importUserData(file) { /* 与之前相同 */ }
+function exportUserData() {
+  if (!currentUser) { showToast('请先登录'); return; }
+  const data = {
+    user: {
+      username: currentUser.username,
+      coins: currentUser.coins,
+      membership_expire: currentUser.membership_expire,
+      avatar: currentUser.avatar,
+      bio: currentUser.bio,
+      role: currentUser.role,
+      signStreak: currentUser.signStreak,
+      lastSignDate: currentUser.lastSignDate
+    },
+    favorites: favorites,
+    watchHistory: watchHistory,
+    version: '1.0'
+  };
+  const jsonStr = JSON.stringify(data);
+  const blob = new Blob([jsonStr], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `manganime_backup_${currentUser.username}_${Date.now()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('数据已导出，请保存好文件');
+}
+function importUserData(file) {
+  if (!currentUser) { showToast('请先登录'); return; }
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const imported = JSON.parse(e.target.result);
+      if (imported.user) {
+        currentUser.coins = imported.user.coins || 0;
+        currentUser.membership_expire = imported.user.membership_expire || 0;
+        currentUser.avatar = imported.user.avatar || '😊';
+        currentUser.bio = imported.user.bio || '追番爱好者';
+        currentUser.signStreak = imported.user.signStreak || 0;
+        currentUser.lastSignDate = imported.user.lastSignDate || '';
+        favorites = imported.favorites || [];
+        saveFav();
+        watchHistory = imported.watchHistory || [];
+        localStorage.setItem('animeHistory', JSON.stringify(watchHistory));
+        saveUserToDB();
+        updateUserUI();
+        syncCoinsUI();
+        if (document.getElementById('streakText')) refreshSignBtn();
+        if (document.getElementById('historyList')) renderHistory();
+        if (document.getElementById('favoritesList')) renderFavPage();
+        showToast('数据导入成功！');
+      } else {
+        showToast('文件格式不正确');
+      }
+    } catch(err) {
+      showToast('导入失败，文件损坏');
+    }
+  };
+  reader.readAsText(file);
+}
 
 // ==================== 初始化 ====================
 document.addEventListener('DOMContentLoaded', async () => {
-  // 1. 先渲染页面（确保首页动漫显示）
+  // 优先渲染首页
   renderAnimeList('all');
   startBanner();
 
-  // 2. 初始化本地数据
   initDefaultAdmin();
   usersDB = JSON.parse(localStorage.getItem('manganime_users') || '[]');
   let storedUser = JSON.parse(localStorage.getItem('manganime_currentUser') || 'null');
@@ -425,8 +430,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (found) currentUser = { ...found };
     else currentUser = null;
   }
-
-  // 3. 尝试加载云端用户数据（不阻塞）
+  // 异步加载云端用户数据（不阻塞）
   if (currentUser && supabase) {
     try {
       let cloud = await loadUser(currentUser.username);
@@ -435,16 +439,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         currentUser.lastSignDate = currentUser.last_sign_date;
         currentUser.signStreak = currentUser.sign_streak;
       }
-    } catch (e) { console.warn("云端加载失败，使用本地数据"); }
+    } catch(e) { console.warn("云端加载失败"); }
   }
-
   watchHistory = JSON.parse(localStorage.getItem('animeHistory') || '[]');
   loadFav();
   loadGiftCodes();
   updateUserUI();
   refreshSignBtn();
 
-  // ==================== 事件绑定（确保所有按钮可点） ====================
+  // 绑定事件（确保所有按钮可点）
   document.querySelectorAll('.back-home').forEach(el => el.addEventListener('click', () => navigateTo('homePage')));
   document.querySelectorAll('.back-user').forEach(el => el.addEventListener('click', () => navigateTo('userPage')));
   document.getElementById('searchIcon')?.addEventListener('click', () => navigateTo('searchPage'));
@@ -535,68 +538,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     item.addEventListener('click', () => navigateTo(item.dataset.page));
   });
 });
-
-// 补齐导出/导入函数（与之前相同，可正常工作）
-function exportUserData() {
-  if (!currentUser) { showToast('请先登录'); return; }
-  const data = {
-    user: {
-      username: currentUser.username,
-      coins: currentUser.coins,
-      membership_expire: currentUser.membership_expire,
-      avatar: currentUser.avatar,
-      bio: currentUser.bio,
-      role: currentUser.role,
-      signStreak: currentUser.signStreak,
-      lastSignDate: currentUser.lastSignDate
-    },
-    favorites: favorites,
-    watchHistory: watchHistory,
-    version: '1.0'
-  };
-  const jsonStr = JSON.stringify(data);
-  const blob = new Blob([jsonStr], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `manganime_backup_${currentUser.username}_${Date.now()}.json`;
-  a.click();
-  URL.revokeObjectURL(url);
-  showToast('数据已导出，请保存好文件');
-}
-function importUserData(file) {
-  if (!currentUser) { showToast('请先登录'); return; }
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    try {
-      const imported = JSON.parse(e.target.result);
-      if (imported.user) {
-        currentUser.coins = imported.user.coins || 0;
-        currentUser.membership_expire = imported.user.membership_expire || 0;
-        currentUser.avatar = imported.user.avatar || '😊';
-        currentUser.bio = imported.user.bio || '追番爱好者';
-        currentUser.signStreak = imported.user.signStreak || 0;
-        currentUser.lastSignDate = imported.user.lastSignDate || '';
-        favorites = imported.favorites || [];
-        saveFav();
-        watchHistory = imported.watchHistory || [];
-        localStorage.setItem('animeHistory', JSON.stringify(watchHistory));
-        saveUserToDB();
-        updateUserUI();
-        syncCoinsUI();
-        if (document.getElementById('streakText')) refreshSignBtn();
-        if (document.getElementById('historyList')) renderHistory();
-        if (document.getElementById('favoritesList')) renderFavPage();
-        showToast('数据导入成功！');
-      } else {
-        showToast('文件格式不正确');
-      }
-    } catch(err) {
-      showToast('导入失败，文件损坏');
-    }
-  };
-  reader.readAsText(file);
-}
 </script>
 </body>
 </html>
