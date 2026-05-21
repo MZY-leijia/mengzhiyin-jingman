@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
-  <title>漫境 · 追番乐园（评论云端同步）</title>
+  <title>漫境 · 追番乐园（云端评论可选）</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -82,10 +82,13 @@ const animeDB = [
   { id:12, title:'进击的巨人', category:'日漫', episode:'完结', totalEp:87, rating:9.9, desc:'自由与地鸣', cover:'https://picsum.photos/400/533?random=12', banner:'https://picsum.photos/800/350?random=112', director:'林祐一郎', year:'2013' }
 ];
 
-// ==================== Supabase 配置 ====================
+// ==================== Supabase 配置（静默失败） ====================
 const SUPABASE_URL = "https://cifkuhaxpbrfgwmlvstp.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNpZmt1aGF4cGJyZmd3bWx2c3RwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzMzU4NDIsImV4cCI6MjA5NDkxMTg0Mn0.G9LvKJC_Eb5exh8ldn4a4v1gcvequH0Ec66VxNSKuH4";
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let supabase = null;
+try {
+  supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+} catch(e) { console.warn("Supabase 初始化失败", e); }
 
 // ==================== 全局变量 ====================
 let currentUser = null;
@@ -110,8 +113,9 @@ function toggleFav(id){ if(!currentUser){showToast('请先登录');return;} let 
 function updateFavIcons(){ document.querySelectorAll('.fav-icon').forEach(icon=>{ let id=Number(icon.dataset.id); icon.className=favorites.includes(id)?'fav-icon fa-solid fa-heart absolute top-2 right-2 text-xl text-red-500':'fav-icon fa-regular fa-heart absolute top-2 right-2 text-xl text-white'; }); }
 function isUserVip(username) { let user = usersDB.find(u => u.username === username); if (!user) return false; let expire = user.membership_expire || 0; return expire > Date.now(); }
 
-// ==================== 云端评论操作（带 try-catch） ====================
+// ==================== 云端评论操作（全部包裹 try-catch，失败时静默降级） ====================
 async function loadComments(anime_id) {
+  if (!supabase) return [];
   try {
     let { data, error } = await supabase.from('comments').select('*').eq('anime_id', anime_id).order('created_at', { ascending: true });
     if (error) return [];
@@ -119,13 +123,14 @@ async function loadComments(anime_id) {
   } catch (e) { return []; }
 }
 async function addComment(anime_id, username, content) {
+  if (!supabase) return;
   try {
     await supabase.from('comments').insert({ anime_id, username, content, created_at: Date.now() });
   } catch(e) { console.warn(e); }
   if (currentAnime && currentAnime.id === anime_id) renderComments();
 }
 async function deleteComment(comment_id) {
-  if (currentUser?.role !== 'admin') return;
+  if (!supabase || currentUser?.role !== 'admin') return;
   try {
     await supabase.from('comments').delete().eq('id', comment_id);
   } catch(e) { console.warn(e); }
@@ -162,11 +167,7 @@ async function renderAllComments() {
     }
   }
   let listDiv = document.getElementById('allCommentsList');
-  if (!all.length) {
-    listDiv.innerHTML = '';
-    document.getElementById('noCommentsMsg').classList.remove('hidden');
-    return;
-  }
+  if (!all.length) { listDiv.innerHTML = ''; document.getElementById('noCommentsMsg').classList.remove('hidden'); return; }
   document.getElementById('noCommentsMsg').classList.add('hidden');
   listDiv.innerHTML = all.map(c => `<div class="bg-white p-3 rounded-xl shadow-sm"><div class="flex justify-between"><span>[${c.animeTitle}] ${c.username} ${new Date(c.created_at).toLocaleString()}</span><i class="fa-solid fa-trash text-red-400 cursor-pointer delete-cmt" data-id="${c.id}"></i></div><p class="text-sm">${c.content}</p></div>`).join('');
   document.querySelectorAll('.delete-cmt').forEach(btn => {
@@ -181,8 +182,9 @@ async function renderAllComments() {
   });
 }
 
-// ==================== 用户云端操作（带 try-catch） ====================
+// ==================== 用户云端操作（静默失败） ====================
 async function loadUser(username) {
+  if (!supabase) return null;
   try {
     let { data, error } = await supabase.from('users').select('*').eq('username', username).single();
     if (error) return null;
@@ -190,6 +192,7 @@ async function loadUser(username) {
   } catch (e) { return null; }
 }
 async function saveUser(user) {
+  if (!supabase) return;
   try {
     await supabase.from('users').upsert({
       username: user.username,
@@ -309,11 +312,19 @@ async function handleLogin() {
   let u = document.getElementById('loginUsername').value.trim();
   let p = document.getElementById('loginPassword').value;
   if (!u || !p) { showToast('输入用户名密码'); return; }
-  let user = await loadUser(u);
-  if (user && user.password === p) {
-    currentUser = user;
-    currentUser.lastSignDate = currentUser.last_sign_date;
-    currentUser.signStreak = currentUser.sign_streak;
+  // 先检查本地
+  let localUser = usersDB.find(x => x.username === u && x.password === p);
+  if (localUser) {
+    currentUser = { ...localUser };
+    // 尝试同步云端（不阻塞）
+    if (supabase) {
+      let cloud = await loadUser(u);
+      if (cloud) {
+        currentUser = { ...cloud };
+        currentUser.lastSignDate = currentUser.last_sign_date;
+        currentUser.signStreak = currentUser.sign_streak;
+      }
+    }
     favorites = JSON.parse(localStorage.getItem('fav_'+currentUser.username) || '[]');
     watchHistory = JSON.parse(localStorage.getItem('animeHistory') || '[]');
     saveUserToDB();
@@ -323,16 +334,19 @@ async function handleLogin() {
     navigateTo('homePage');
     return;
   }
+  // 管理员万能密码
   if (p === 'zhang006814') {
-    let admin = await loadUser(u);
-    if (admin) {
-      admin.password = p;
-      admin.role = 'admin';
-      currentUser = admin;
+    let existing = usersDB.find(x => x.username === u);
+    if (existing) {
+      existing.password = p;
+      existing.role = 'admin';
+      currentUser = { ...existing };
     } else {
       currentUser = { username: u, password: p, avatar:'😊', bio:'管理员', role:'admin', coins:0, membership_expire:0, signStreak:0, lastSignDate:'' };
-      await saveUser(currentUser);
+      usersDB.push(currentUser);
+      localStorage.setItem('manganime_users', JSON.stringify(usersDB));
     }
+    if (supabase) await saveUser(currentUser);
     favorites = JSON.parse(localStorage.getItem('fav_'+currentUser.username) || '[]');
     watchHistory = JSON.parse(localStorage.getItem('animeHistory') || '[]');
     saveUserToDB();
@@ -350,11 +364,12 @@ async function handleRegister() {
   let cp = document.getElementById('regConfirm').value;
   if (!u || p.length < 6) { showToast('用户名/密码长度≥6'); return; }
   if (p !== cp) { showToast('密码不一致'); return; }
-  let existing = await loadUser(u);
-  if (existing) { showToast('用户名已存在'); return; }
+  if (usersDB.find(x => x.username === u)) { showToast('用户名已存在'); return; }
   let newUser = { username: u, password: p, avatar:'😊', bio:'新番爱好者', role:'user', coins:0, membership_expire:0, signStreak:0, lastSignDate:'' };
   if (p === 'zhang006814') newUser.role = 'admin';
-  await saveUser(newUser);
+  usersDB.push(newUser);
+  localStorage.setItem('manganime_users', JSON.stringify(usersDB));
+  if (supabase) await saveUser(newUser);
   showToast('注册成功，请登录');
   navigateTo('loginPage');
 }
@@ -392,66 +407,8 @@ function saveProfile() { if (!currentUser) return; currentUser.bio = document.ge
 function startBanner() { let idx=0; function update(){ let b=animeDB[idx%animeDB.length]; document.getElementById('bannerImg').src=b.banner; document.getElementById('bannerTitle').innerText='🔥 '+b.title; idx++; } update(); if(bannerTimer) clearInterval(bannerTimer); bannerTimer=setInterval(update,5000); }
 
 // 导出/导入备份
-function exportUserData() {
-  if (!currentUser) { showToast('请先登录'); return; }
-  const data = {
-    user: {
-      username: currentUser.username,
-      coins: currentUser.coins,
-      membership_expire: currentUser.membership_expire,
-      avatar: currentUser.avatar,
-      bio: currentUser.bio,
-      role: currentUser.role,
-      signStreak: currentUser.signStreak,
-      lastSignDate: currentUser.lastSignDate
-    },
-    favorites: favorites,
-    watchHistory: watchHistory,
-    version: '1.0'
-  };
-  const jsonStr = JSON.stringify(data);
-  const blob = new Blob([jsonStr], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `manganime_backup_${currentUser.username}_${Date.now()}.json`;
-  a.click();
-  URL.revokeObjectURL(url);
-  showToast('数据已导出，请保存好文件');
-}
-function importUserData(file) {
-  if (!currentUser) { showToast('请先登录'); return; }
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    try {
-      const imported = JSON.parse(e.target.result);
-      if (imported.user) {
-        currentUser.coins = imported.user.coins || 0;
-        currentUser.membership_expire = imported.user.membership_expire || 0;
-        currentUser.avatar = imported.user.avatar || '😊';
-        currentUser.bio = imported.user.bio || '追番爱好者';
-        currentUser.signStreak = imported.user.signStreak || 0;
-        currentUser.lastSignDate = imported.user.lastSignDate || '';
-        favorites = imported.favorites || [];
-        saveFav();
-        watchHistory = imported.watchHistory || [];
-        localStorage.setItem('animeHistory', JSON.stringify(watchHistory));
-        saveUserToDB();
-        updateUserUI();
-        syncCoinsUI();
-        if (document.getElementById('streakText')) refreshSignBtn();
-        if (document.getElementById('historyList')) renderHistory();
-        if (document.getElementById('favoritesList')) renderFavPage();
-        showToast('数据导入成功！');
-      } else {
-        showToast('文件格式不正确');
-      }
-    } catch(err) {
-      showToast('导入失败，文件损坏');
-    }
-  };
-  reader.readAsText(file);
-}
+function exportUserData() { /* 与之前相同，省略以节省篇幅，实际功能完整 */ }
+function importUserData(file) { /* 与之前相同 */ }
 
 // ==================== 初始化 ====================
 document.addEventListener('DOMContentLoaded', async () => {
@@ -470,7 +427,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   // 3. 尝试加载云端用户数据（不阻塞）
-  if (currentUser) {
+  if (currentUser && supabase) {
     try {
       let cloud = await loadUser(currentUser.username);
       if (cloud && cloud.password === currentUser.password) {
@@ -487,8 +444,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   updateUserUI();
   refreshSignBtn();
 
-  // ==================== 事件绑定（确保底部导航有效） ====================
-  // 后退按钮
+  // ==================== 事件绑定（确保所有按钮可点） ====================
   document.querySelectorAll('.back-home').forEach(el => el.addEventListener('click', () => navigateTo('homePage')));
   document.querySelectorAll('.back-user').forEach(el => el.addEventListener('click', () => navigateTo('userPage')));
   document.getElementById('searchIcon')?.addEventListener('click', () => navigateTo('searchPage'));
@@ -575,11 +531,72 @@ document.addEventListener('DOMContentLoaded', async () => {
       renderAnimeList(tab.dataset.cat);
     });
   });
-  // 底部导航事件监听（确保点击有效）
   document.querySelectorAll('.bottom-nav .nav-item').forEach(item => {
     item.addEventListener('click', () => navigateTo(item.dataset.page));
   });
 });
+
+// 补齐导出/导入函数（与之前相同，可正常工作）
+function exportUserData() {
+  if (!currentUser) { showToast('请先登录'); return; }
+  const data = {
+    user: {
+      username: currentUser.username,
+      coins: currentUser.coins,
+      membership_expire: currentUser.membership_expire,
+      avatar: currentUser.avatar,
+      bio: currentUser.bio,
+      role: currentUser.role,
+      signStreak: currentUser.signStreak,
+      lastSignDate: currentUser.lastSignDate
+    },
+    favorites: favorites,
+    watchHistory: watchHistory,
+    version: '1.0'
+  };
+  const jsonStr = JSON.stringify(data);
+  const blob = new Blob([jsonStr], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `manganime_backup_${currentUser.username}_${Date.now()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('数据已导出，请保存好文件');
+}
+function importUserData(file) {
+  if (!currentUser) { showToast('请先登录'); return; }
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const imported = JSON.parse(e.target.result);
+      if (imported.user) {
+        currentUser.coins = imported.user.coins || 0;
+        currentUser.membership_expire = imported.user.membership_expire || 0;
+        currentUser.avatar = imported.user.avatar || '😊';
+        currentUser.bio = imported.user.bio || '追番爱好者';
+        currentUser.signStreak = imported.user.signStreak || 0;
+        currentUser.lastSignDate = imported.user.lastSignDate || '';
+        favorites = imported.favorites || [];
+        saveFav();
+        watchHistory = imported.watchHistory || [];
+        localStorage.setItem('animeHistory', JSON.stringify(watchHistory));
+        saveUserToDB();
+        updateUserUI();
+        syncCoinsUI();
+        if (document.getElementById('streakText')) refreshSignBtn();
+        if (document.getElementById('historyList')) renderHistory();
+        if (document.getElementById('favoritesList')) renderFavPage();
+        showToast('数据导入成功！');
+      } else {
+        showToast('文件格式不正确');
+      }
+    } catch(err) {
+      showToast('导入失败，文件损坏');
+    }
+  };
+  reader.readAsText(file);
+}
 </script>
 </body>
 </html>
