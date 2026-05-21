@@ -3,55 +3,63 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
-  <title>漫境 · 追番乐园</title>
+  <title>漫境 · 追番乐园（评论云端同步）</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    *{margin:0;padding:0;box-sizing:border-box}
-    body{background:#f7f9fc;font-family:system-ui;padding-bottom:70px}
-    @media(min-width:768px){body{padding-bottom:0}.bottom-nav{max-width:600px;left:50%;transform:translateX(-50%);border-radius:30px 30px 0 0}}
-    .tab{transition:all 0.2s;font-weight:500;color:#6b7280;cursor:pointer;padding:8px 4px;white-space:nowrap;font-size:0.9rem;position:relative}
-    .tab.active{color:#dc2626;font-weight:600}
-    .tab.active::after{content:'';position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:20px;height:3px;background:#dc2626;border-radius:10px}
-    .anime-card{cursor:pointer;transition:transform 0.15s ease;border-radius:16px;overflow:hidden;background:white;box-shadow:0 4px 12px rgba(0,0,0,0.05)}
-    .anime-card:active{transform:scale(0.97)}
-    .anime-card img{width:100%;aspect-ratio:3/4;object-fit:cover;display:block}
-    .page{display:none}
-    .page.active{display:block}
-    .bottom-nav{position:fixed;bottom:0;left:0;width:100%;background:rgba(255,255,255,0.96);backdrop-filter:blur(10px);border-top:1px solid #e5e7eb;z-index:30;display:flex;justify-content:space-around;align-items:center;padding:6px 0}
-    .bottom-nav .nav-item{transition:all 0.2s;border-radius:30px;padding:6px 0;flex:1;text-align:center;cursor:pointer;color:#6b7280}
-    .bottom-nav .nav-item.active{color:#dc2626;background:#fff0f0}
-    .episode-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:10px}
-    .episode-btn{padding:8px 4px;text-align:center;background:#f1f5f9;border-radius:12px;font-size:0.8rem;font-weight:500;cursor:pointer}
-    .episode-btn.active{background:#dc2626;color:white}
-    .toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#1f2937;color:white;padding:10px 24px;border-radius:40px;font-size:14px;z-index:200;opacity:0;transition:opacity 0.2s;pointer-events:none;white-space:nowrap}
-    .toast.show{opacity:1}
-    .avatar-option{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.8rem;background:#f1f5f9;cursor:pointer;border:3px solid transparent}
-    .avatar-option.selected{border-color:#dc2626;background:#fee2e2}
-    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:300;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.25s;backdrop-filter:blur(4px)}
-    .modal-overlay.show{opacity:1;pointer-events:auto}
-    .modal-dialog{background:white;border-radius:32px;padding:24px;width:85%;max-width:400px;transform:scale(0.9);transition:transform 0.3s;max-height:80vh;overflow-y:auto}
-    .modal-overlay.show .modal-dialog{transform:scale(1)}
-    .admin-badge{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;background:#dc2626;color:white;font-size:12px;font-weight:700;border-radius:50%;margin-left:6px}
-    .vip-badge{background:#ef4444;color:white;font-size:11px;font-weight:bold;padding:2px 6px;border-radius:20px;margin-left:8px;display:inline-block;line-height:1.2;vertical-align:middle}
-    .video-container video{width:100%;height:100%;object-fit:contain;background:#000}
-    .coin-badge{background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#2d2a1e;font-weight:bold;padding:4px 12px;border-radius:30px;display:inline-flex;align-items:center;gap:6px;font-size:0.8rem}
-    .comment-username-vip{color:#eab308;font-weight:bold}
-    .delete-history-btn,.delete-code-btn{cursor:pointer;transition:0.2s}
-    .delete-history-btn:hover,.delete-code-btn:hover{transform:scale(1.1)}
-    .code-item{background:#f9fafb;border-radius:12px;padding:10px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background-color: #f7f9fc; font-family: system-ui, -apple-system, 'Inter', sans-serif; padding-bottom: 70px; }
+    @media (min-width: 768px) {
+      body { padding-bottom: 0; }
+      .bottom-nav { max-width: 600px; left: 50%; transform: translateX(-50%); border-radius: 30px 30px 0 0; }
+    }
+    .tab { transition: all 0.2s; font-weight: 500; color: #6b7280; cursor: pointer; padding: 8px 4px; white-space: nowrap; font-size: 0.9rem; position: relative; }
+    .tab.active { color: #dc2626; font-weight: 600; }
+    .tab.active::after { content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 20px; height: 3px; background: #dc2626; border-radius: 10px; }
+    .anime-card { cursor: pointer; transition: transform 0.15s ease; border-radius: 16px; overflow: hidden; background: white; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+    .anime-card:active { transform: scale(0.97); }
+    .anime-card img { width: 100%; aspect-ratio: 3/4; object-fit: cover; display: block; }
+    .page { display: none; }
+    .page.active { display: block; }
+    .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(255,255,255,0.96); backdrop-filter: blur(10px); border-top: 1px solid #e5e7eb; z-index: 30; display: flex; justify-content: space-around; align-items: center; padding: 6px 0; }
+    .bottom-nav .nav-item { transition: all 0.2s; border-radius: 30px; padding: 6px 0; flex: 1; text-align: center; cursor: pointer; color: #6b7280; }
+    .bottom-nav .nav-item.active { color: #dc2626; background: #fff0f0; }
+    .episode-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 10px; }
+    .episode-btn { padding: 8px 4px; text-align: center; background: #f1f5f9; border-radius: 12px; font-size: 0.8rem; font-weight: 500; cursor: pointer; }
+    .episode-btn.active { background: #dc2626; color: white; }
+    .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #1f2937; color: white; padding: 10px 24px; border-radius: 40px; font-size: 14px; z-index: 200; opacity: 0; transition: opacity 0.2s; pointer-events: none; white-space: nowrap; }
+    .toast.show { opacity: 1; }
+    .avatar-option { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; background: #f1f5f9; cursor: pointer; border: 3px solid transparent; }
+    .avatar-option.selected { border-color: #dc2626; background: #fee2e2; }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 300; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.25s; backdrop-filter: blur(4px); }
+    .modal-overlay.show { opacity: 1; pointer-events: auto; }
+    .modal-dialog { background: white; border-radius: 32px; padding: 24px; width: 85%; max-width: 400px; transform: scale(0.9); transition: transform 0.3s; max-height: 80vh; overflow-y: auto; }
+    .modal-overlay.show .modal-dialog { transform: scale(1); }
+    .admin-badge { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; background: #dc2626; color: white; font-size: 12px; font-weight: 700; border-radius: 50%; margin-left: 6px; }
+    .vip-badge { background: #ef4444; color: white; font-size: 11px; font-weight: bold; padding: 2px 6px; border-radius: 20px; margin-left: 8px; display: inline-block; line-height: 1.2; vertical-align: middle; }
+    .video-container video { width: 100%; height: 100%; object-fit: contain; background: #000; }
+    .coin-badge { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #2d2a1e; font-weight: bold; padding: 4px 12px; border-radius: 30px; display: inline-flex; align-items: center; gap: 6px; font-size: 0.8rem; }
+    .comment-username-vip { color: #eab308; font-weight: bold; }
+    .delete-history-btn, .delete-code-btn { cursor: pointer; transition: 0.2s; }
+    .delete-history-btn:hover, .delete-code-btn:hover { transform: scale(1.1); }
+    .code-item { background: #f9fafb; border-radius: 12px; padding: 10px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
   </style>
 </head>
 <body>
 <div id="toast" class="toast"></div>
+
+<!-- 模态框 -->
 <div id="aboutModal" class="modal-overlay"><div class="modal-dialog text-center"><i class="fa-regular fa-circle-xmark absolute top-4 right-4 text-gray-400 text-xl cursor-pointer close-about"></i><div class="text-5xl mb-2">🎬</div><p class="text-xl font-bold">梦之音制作</p><p class="text-gray-500 text-sm">用心创造每一帧精彩</p><div class="w-12 h-0.5 bg-red-400 mx-auto my-4"></div><p class="text-red-500 font-semibold">漫境 · 追番</p><p class="text-xs text-gray-400 mt-4">© 2026 梦之音 · 全星漫游</p></div></div>
 <div id="detailModal" class="modal-overlay"><div class="modal-dialog"><i class="fa-regular fa-circle-xmark absolute top-4 right-4 text-gray-400 cursor-pointer text-xl close-detail"></i><h3 class="text-xl font-bold pr-6" id="detailTitle"></h3><div class="flex flex-wrap gap-2 text-sm text-gray-500 mt-1 mb-3"><span id="detailCategory" class="bg-gray-100 px-2 py-0.5 rounded-full"></span><span id="detailYear"></span></div><div class="flex gap-3 text-sm"><span class="text-gray-400 w-12">导演</span><span id="detailDirector">未知</span></div><div class="mt-2"><i class="fa-solid fa-star text-yellow-400"></i> <span id="detailRating" class="font-bold">8.5</span></div><div class="mt-3"><p class="text-xs text-gray-400 mb-1">简介</p><p id="detailDesc" class="text-sm text-gray-700"></p></div></div></div>
 
 <div id="app">
   <!-- 首页 -->
   <div id="homePage" class="page active">
-    <header class="bg-white/80 backdrop-blur-md sticky top-0 z-20 shadow-sm"><div class="flex justify-between items-center px-4 py-3"><div class="flex items-center gap-2"><i class="fa-solid fa-feather-pointed text-red-500 text-2xl"></i><h1 class="text-xl font-bold">漫境<span class="text-red-500">·追番</span></h1></div><div class="flex gap-4 text-gray-600"><i class="fa-solid fa-magnifying-glass text-xl cursor-pointer" id="searchIcon"></i><i class="fa-regular fa-clock text-xl cursor-pointer" id="historyHeaderIcon"></i></div></div><nav class="flex px-4 gap-5 overflow-x-auto" id="tabContainer"><div class="tab active" data-cat="all">🔥 推荐</div><div class="tab" data-cat="日漫">🇯🇵 日漫</div><div class="tab" data-cat="国漫">🇨🇳 国漫</div><div class="tab" data-cat="剧场">🎬 剧场</div></nav></header>
+    <header class="bg-white/80 backdrop-blur-md sticky top-0 z-20 shadow-sm">
+      <div class="flex justify-between items-center px-4 py-3"><div class="flex items-center gap-2"><i class="fa-solid fa-feather-pointed text-red-500 text-2xl"></i><h1 class="text-xl font-bold">漫境<span class="text-red-500">·追番</span></h1></div><div class="flex gap-4 text-gray-600"><i class="fa-solid fa-magnifying-glass text-xl cursor-pointer" id="searchIcon"></i><i class="fa-regular fa-clock text-xl cursor-pointer" id="historyHeaderIcon"></i></div></div>
+      <nav class="flex px-4 gap-5 overflow-x-auto" id="tabContainer"><div class="tab active" data-cat="all">🔥 推荐</div><div class="tab" data-cat="日漫">🇯🇵 日漫</div><div class="tab" data-cat="国漫">🇨🇳 国漫</div><div class="tab" data-cat="剧场">🎬 剧场</div></nav>
+    </header>
     <div class="px-4 pt-3"><div class="relative rounded-2xl overflow-hidden shadow-lg"><img id="bannerImg" class="w-full aspect-[16/7] object-cover"><div class="absolute bottom-3 left-3 bg-black/50 text-white text-xs px-3 py-1 rounded-full"><i class="fa-solid fa-fire mr-1"></i><span id="bannerTitle"></span></div></div></div>
     <div class="px-4 mt-3 flex justify-between items-center"><h2 class="text-lg font-bold"><span id="categoryLabel">推荐精选</span><span class="ml-2 text-xs bg-red-100 text-red-500 px-2 py-0.5 rounded-full">热播</span></h2><span class="text-xs text-gray-400">共 <span id="animeCount">0</span> 部</span></div>
     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 px-4 py-3" id="animeGrid"></div>
@@ -62,17 +70,33 @@
   <div id="searchPage" class="page"><div class="bg-white sticky top-0 px-4 py-3 flex gap-3"><i class="fa-solid fa-arrow-left text-xl cursor-pointer back-home"></i><input type="text" id="searchInput" placeholder="搜动漫..." class="flex-1 bg-gray-100 rounded-full px-5 py-2"><button id="searchBtn" class="bg-red-500 text-white px-4 py-2 rounded-full text-sm">搜索</button></div><div id="searchResults" class="px-4 py-3 space-y-3"></div><div id="noResult" class="hidden text-center py-20 text-gray-400">未找到</div></div>
 
   <!-- 播放页 -->
-  <div id="playPage" class="page"><div class="bg-black relative"><div class="absolute top-4 left-4 z-10 bg-black/50 rounded-full w-8 h-8 flex items-center justify-center"><i class="fa-solid fa-arrow-left text-white text-lg cursor-pointer back-home"></i></div><div class="video-container bg-black flex items-center justify-center aspect-video" id="videoPlaceholder"><i class="fa-regular fa-circle-play text-6xl text-white/70"></i></div></div><div class="bg-white px-4 py-3"><div class="flex justify-between"><div><h2 class="text-lg font-bold" id="playAnimeTitle"></h2><div class="flex gap-2 text-xs text-gray-500 mt-1"><span id="playCategory"></span><span id="playEpisode"></span><span class="text-yellow-500">⭐ <span id="playRating"></span></span></div><p class="text-sm text-gray-600 mt-2" id="playDesc"></p><button id="detailBtn" class="text-red-500 text-xs mt-1">详情</button></div><i id="playFavBtn" class="fa-regular fa-heart text-3xl cursor-pointer text-gray-400"></i></div></div><div class="bg-white mt-2 px-4 py-3"><h3 class="text-sm font-semibold mb-2">📺 选集</h3><div class="episode-grid" id="episodeList"></div></div><div class="mt-2 bg-white px-4 py-3"><h3 class="text-sm font-semibold mb-2">✨ 相关推荐</h3><div class="grid grid-cols-3 gap-2" id="relatedGrid"></div></div><div class="mt-2 bg-white px-4 py-3"><div class="flex justify-between items-center"><h3 class="text-sm font-semibold">💬 评论区</h3></div><div id="commentList" class="space-y-3 mt-3 mb-3"></div><div class="flex gap-2"><input id="commentInput" placeholder="写下你的感想..." class="flex-1 bg-gray-50 rounded-xl px-4 py-2 text-sm border"><button id="postCommentBtn" class="bg-red-500 text-white px-4 py-2 rounded-xl text-sm">发送</button></div></div></div>
+  <div id="playPage" class="page"><div class="bg-black relative"><div class="absolute top-4 left-4 z-10 bg-black/50 rounded-full w-8 h-8 flex items-center justify-center"><i class="fa-solid fa-arrow-left text-white text-lg cursor-pointer back-home"></i></div><div class="video-container bg-black flex items-center justify-center aspect-video" id="videoPlaceholder"><i class="fa-regular fa-circle-play text-6xl text-white/70"></i></div></div><div class="bg-white px-4 py-3"><div class="flex justify-between"><div><h2 class="text-lg font-bold" id="playAnimeTitle"></h2><div class="flex gap-2 text-xs text-gray-500 mt-1"><span id="playCategory"></span><span id="playEpisode"></span><span class="text-yellow-500">⭐ <span id="playRating"></span></span></div><p class="text-sm text-gray-600 mt-2" id="playDesc"></p><button id="detailBtn" class="text-red-500 text-xs mt-1">详情</button></div><i id="playFavBtn" class="fa-regular fa-heart text-3xl cursor-pointer text-gray-400"></i></div></div><div class="bg-white mt-2 px-4 py-3"><h3 class="text-sm font-semibold mb-2">选集</h3><div class="episode-grid" id="episodeList"></div></div><div class="mt-2 bg-white px-4 py-3"><h3 class="text-sm font-semibold mb-2">相关推荐</h3><div class="grid grid-cols-3 gap-2" id="relatedGrid"></div></div><div class="mt-2 bg-white px-4 py-3"><div class="flex justify-between items-center"><h3 class="text-sm font-semibold">评论区</h3></div><div id="commentList" class="space-y-3 mt-3 mb-3"></div><div class="flex gap-2"><input id="commentInput" placeholder="写下你的感想..." class="flex-1 bg-gray-50 rounded-xl px-4 py-2 text-sm border"><button id="postCommentBtn" class="bg-red-500 text-white px-4 py-2 rounded-xl text-sm">发送</button></div></div></div>
 
-  <!-- 任务中心 -->
-  <div id="taskPage" class="page"><div class="bg-white sticky top-0 px-4 py-3 flex gap-3"><i class="fa-solid fa-arrow-left text-xl cursor-pointer back-home"></i><h2 class="text-lg font-bold">✨ 任务中心</h2></div><div class="px-4 py-5"><div class="bg-amber-50 rounded-2xl p-5"><div class="flex justify-between"><div><p class="text-gray-600">我的金币</p><p class="text-3xl font-bold text-amber-600" id="taskCoins">0</p></div><div class="coin-badge"><i class="fa-solid fa-coins"></i> 财富</div></div></div><div class="bg-white rounded-2xl p-5 mt-4 shadow"><div class="flex justify-between mb-2"><h3 class="font-bold">📅 每日签到</h3><span id="streakText" class="text-xs text-gray-400">连续0天</span></div><div class="flex justify-between text-sm bg-gray-50 p-2 rounded-xl mb-3"><span>1~3天: +10</span><span>4天起: +20</span><span>断签重置</span></div><button id="checkinBtn" class="w-full bg-red-500 text-white py-3 rounded-xl font-bold">🔔 今日签到</button></div><div class="bg-white rounded-2xl p-5 mt-4 shadow border border-purple-200"><h3 class="font-bold mb-2 flex items-center gap-2"><i class="fa-solid fa-ticket text-purple-500"></i> 卡密兑换</h3><div class="flex gap-2"><input type="text" id="redeemCodeInput" placeholder="请输入卡密" class="flex-1 bg-gray-50 border rounded-xl px-4 py-2 text-sm"><button id="redeemBtn" class="bg-purple-600 text-white px-4 py-2 rounded-xl text-sm font-medium">兑换</button></div></div><div id="adminCoinBox" class="hidden mt-4"><button id="addCoinsBtn" class="w-full bg-green-500 text-white py-3 rounded-xl font-bold shadow-md">➕ 加100金币 (管理员)</button></div><div class="bg-white rounded-2xl p-4 mt-4 shadow"><button id="goMembershipBtn" class="w-full bg-gray-100 py-2 rounded-xl text-sm">🎁 去会员中心兑换</button></div><div class="bg-white rounded-2xl p-4 mt-4 shadow"><button id="exportDataBtn" class="w-full bg-blue-500 text-white py-2 rounded-xl text-sm mb-2">📤 导出数据（备份）</button><button id="importDataBtn" class="w-full bg-green-600 text-white py-2 rounded-xl text-sm">📥 导入数据（恢复）</button><input type="file" id="importFileInput" accept=".json" style="display:none"></div></div></div>
+  <!-- 任务中心（含卡密兑换） -->
+  <div id="taskPage" class="page">
+    <div class="bg-white sticky top-0 px-4 py-3 flex gap-3"><i class="fa-solid fa-arrow-left text-xl cursor-pointer back-home"></i><h2 class="text-lg font-bold">✨ 任务中心</h2></div>
+    <div class="px-4 py-5">
+      <div class="bg-amber-50 rounded-2xl p-5"><div class="flex justify-between"><div><p class="text-gray-600">我的金币</p><p class="text-3xl font-bold text-amber-600" id="taskCoins">0</p></div><div class="coin-badge"><i class="fa-solid fa-coins"></i> 财富</div></div></div>
+      <div class="bg-white rounded-2xl p-5 mt-4 shadow"><div class="flex justify-between mb-2"><h3 class="font-bold">📅 每日签到</h3><span id="streakText" class="text-xs text-gray-400">连续0天</span></div><div class="flex justify-between text-sm bg-gray-50 p-2 rounded-xl mb-3"><span>1~3天: +10</span><span>4天起: +20</span><span>断签重置</span></div><button id="checkinBtn" class="w-full bg-red-500 text-white py-3 rounded-xl font-bold">🔔 今日签到</button></div>
+      <!-- 卡密兑换模块 -->
+      <div class="bg-white rounded-2xl p-5 mt-4 shadow border border-purple-200">
+        <h3 class="font-bold mb-2 flex items-center gap-2"><i class="fa-solid fa-ticket text-purple-500"></i> 卡密兑换</h3>
+        <p class="text-xs text-gray-500 mb-3">输入兑换码，立即获得对应金币</p>
+        <div class="flex gap-2">
+          <input type="text" id="redeemCodeInput" placeholder="请输入卡密" class="flex-1 bg-gray-50 border rounded-xl px-4 py-2 text-sm">
+          <button id="redeemBtn" class="bg-purple-600 text-white px-4 py-2 rounded-xl text-sm font-medium">兑换</button>
+        </div>
+      </div>
+      <div id="adminCoinBox" class="hidden mt-4"><button id="addCoinsBtn" class="w-full bg-green-500 text-white py-3 rounded-xl font-bold shadow-md">➕ 加100金币 (管理员)</button></div>
+      <div class="bg-white rounded-2xl p-4 mt-4"><button id="goMembershipBtn" class="w-full bg-gray-100 py-2 rounded-xl text-sm">🎁 去会员中心兑换</button></div>
+    </div>
+  </div>
 
   <!-- 我的会员 -->
-  <div id="membershipPage" class="page"><div class="bg-white sticky top-0 px-4 py-3 flex gap-3"><i class="fa-solid fa-arrow-left text-xl cursor-pointer back-user"></i><h2 class="text-lg font-bold">👑 我的会员</h2></div><div class="px-4 py-5"><div class="bg-gradient-to-r from-red-500 to-orange-500 rounded-2xl p-5 text-white"><div class="flex justify-between"><div><p class="opacity-90 text-sm">当前状态</p><p class="text-2xl font-bold" id="memberStatusText">普通用户</p><p class="text-xs opacity-80" id="memberExpireText">未开通</p></div><i class="fa-solid fa-crown text-3xl opacity-70"></i></div><div class="mt-3"><i class="fa-solid fa-coins"></i> <span id="memberCoinsAmount">0</span> 金币</div></div><h3 class="font-bold mt-5 mb-3">🎁 兑换套餐</h3><div class="space-y-3"><div class="bg-white rounded-xl p-4 flex justify-between border"><div><p class="font-bold">5天 VIP</p><p class="text-xs text-gray-400">尊贵标识</p></div><div><span class="text-amber-500 font-bold"><i class="fa-solid fa-coins"></i> 600</span><button class="exchange-btn" data-days="5" data-cost="600">兑换</button></div></div><div class="bg-white rounded-xl p-4 flex justify-between border"><div><p class="font-bold">30天 VIP</p><p class="text-xs text-gray-400">超值包月</p></div><div><span class="text-amber-500 font-bold"><i class="fa-solid fa-coins"></i> 3000</span><button class="exchange-btn" data-days="30" data-cost="3000">兑换</button></div></div></div></div></div>
+  <div id="membershipPage" class="page"><div class="bg-white sticky top-0 px-4 py-3 flex gap-3"><i class="fa-solid fa-arrow-left text-xl cursor-pointer back-user"></i><h2 class="text-lg font-bold">👑 我的会员</h2></div><div class="px-4 py-5"><div class="bg-gradient-to-r from-red-500 to-orange-500 rounded-2xl p-5 text-white"><div class="flex justify-between"><div><p class="opacity-90 text-sm">当前状态</p><p class="text-2xl font-bold" id="memberStatusText">普通用户</p><p class="text-xs opacity-80" id="memberExpireText">未开通</p></div><i class="fa-solid fa-crown text-3xl opacity-70"></i></div><div class="mt-3"><i class="fa-solid fa-coins"></i> <span id="memberCoinsAmount">0</span> 金币</div></div><h3 class="font-bold mt-5 mb-3">兑换套餐</h3><div class="space-y-3"><div class="bg-white rounded-xl p-4 flex justify-between border"><div><p class="font-bold">5天 VIP</p><p class="text-xs text-gray-400">尊贵标识</p></div><div><span class="text-amber-500 font-bold"><i class="fa-solid fa-coins"></i> 600</span><button class="exchange-btn ml-3 bg-amber-100 px-3 py-1 rounded-full text-sm" data-days="5" data-cost="600">兑换</button></div></div><div class="bg-white rounded-xl p-4 flex justify-between border"><div><p class="font-bold">30天 VIP</p><p class="text-xs text-gray-400">超值包月</p></div><div><span class="text-amber-500 font-bold"><i class="fa-solid fa-coins"></i> 3000</span><button class="exchange-btn ml-3 bg-amber-100 px-3 py-1 rounded-full text-sm" data-days="30" data-cost="3000">兑换</button></div></div></div></div></div>
 
   <!-- 历史记录 -->
   <div id="historyPage" class="page"><div class="bg-white sticky top-0 px-4 py-3 flex gap-3"><i class="fa-solid fa-arrow-left text-xl cursor-pointer back-home"></i><h2 class="text-lg font-bold">📜 观看历史</h2></div><div id="historyList" class="px-4 py-3 space-y-3"></div><div id="noHistory" class="hidden text-center py-20 text-gray-400">暂无记录</div></div>
-
   <!-- 我的追番 -->
   <div id="favoritesPage" class="page"><div class="bg-white sticky top-0 px-4 py-3 flex gap-3"><i class="fa-solid fa-arrow-left text-xl cursor-pointer back-user"></i><h2 class="text-lg font-bold">❤️ 我的追番</h2></div><div id="favoritesList" class="px-4 py-3 space-y-3"></div><div id="noFavorites" class="hidden text-center py-20 text-gray-400">暂无追番</div></div>
 
@@ -83,8 +107,26 @@
   <!-- 个人中心 -->
   <div id="userPage" class="page"><div class="bg-white px-4 pt-6 pb-4 text-center"><div class="relative inline-block cursor-pointer edit-profile-trigger"><div class="w-20 h-20 bg-red-100 rounded-full mx-auto flex items-center justify-center text-4xl overflow-hidden shadow" id="avatarDisplay">😊</div><div class="absolute bottom-0 right-0 bg-white rounded-full p-1 shadow"><i class="fa-solid fa-pen text-gray-500 text-xs"></i></div></div><h2 class="text-lg font-bold mt-2" id="profileName">未登录</h2><p class="text-sm text-gray-500" id="profileBio"></p><div class="flex justify-center gap-8 mt-3 text-sm"><div><span class="font-bold text-red-500" id="followCount">0</span> 追番</div><div><span class="font-bold text-red-500" id="watchedCount">0</span> 已看</div><div><span class="font-bold text-amber-500" id="userCoinDisplay">0</span> 金币</div></div><button class="edit-profile-trigger mt-3 text-xs border rounded-full px-4 py-1 text-gray-600">编辑资料</button></div><div id="editProfilePanel" class="hidden bg-white mt-1 px-4 py-4 border-t"><div class="flex flex-wrap gap-2 mb-4" id="avatarOptions"></div><div class="flex gap-2"><button id="uploadAvatarBtn" class="text-xs bg-gray-100 px-3 py-1.5 rounded-full">📁 上传图片</button><input type="file" id="avatarFileInput" accept="image/*" style="display:none"></div><input id="bioInput" class="w-full bg-gray-50 p-2 rounded-xl text-sm mt-3"><div class="flex gap-2 mt-4"><button id="saveProfileBtn" class="flex-1 bg-red-500 text-white py-2 rounded-xl">保存</button><button id="cancelEditBtn" class="flex-1 bg-gray-200 py-2 rounded-xl">取消</button></div></div><div class="mt-2 bg-white px-4 divide-y"><div class="py-3 flex items-center gap-3 cursor-pointer goto-history"><i class="fa-regular fa-clock w-6 text-blue-400"></i>观看历史</div><div class="py-3 flex items-center gap-3 cursor-pointer goto-favorites"><i class="fa-regular fa-heart w-6 text-red-400"></i>我的追番</div><div class="py-3 flex items-center gap-3 cursor-pointer goto-membership"><i class="fa-solid fa-gem w-6 text-amber-500"></i>我的会员</div><div class="py-3 flex items-center gap-3 cursor-pointer goto-task"><i class="fa-solid fa-calendar-check w-6 text-green-500"></i>签到任务</div><div id="codeManageEntry" class="py-3 hidden items-center gap-3 cursor-pointer goto-code-manage"><i class="fa-solid fa-ticket w-6 text-purple-500"></i>卡密管理</div><div id="commentManageEntry" class="py-3 hidden items-center gap-3 cursor-pointer goto-comment-manage"><i class="fa-regular fa-message w-6 text-purple-500"></i>评论管理</div><div class="py-3 flex items-center gap-3 cursor-pointer open-about"><i class="fa-regular fa-circle-info w-6 text-indigo-400"></i>关于我们</div><div id="logoutBtn" class="py-3 flex items-center gap-3 cursor-pointer text-red-500"><i class="fa-solid fa-right-from-bracket"></i>退出登录</div></div></div>
 
-  <!-- 卡密管理页 -->
-  <div id="codeManagePage" class="page"><div class="bg-white sticky top-0 px-4 py-3 flex gap-3"><i class="fa-solid fa-arrow-left text-xl cursor-pointer back-user"></i><h2 class="text-lg font-bold">🎫 卡密管理</h2></div><div class="px-4 py-4"><div class="bg-white rounded-2xl p-4 shadow mb-4"><h3 class="font-semibold mb-2">➕ 添加新卡密</h3><div class="flex flex-col gap-2 sm:flex-row"><input type="number" id="codeValueInput" placeholder="金币数量" class="border rounded-xl px-3 py-2 w-full sm:w-32 text-sm" value="100"><button id="generateCodeBtn" class="bg-purple-600 text-white px-4 py-2 rounded-xl text-sm">随机生成</button><button id="manualAddCodeBtn" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm">自定义</button></div><div class="mt-2 flex gap-2"><input type="text" id="customCodeInput" placeholder="手动输入卡密" class="flex-1 border rounded-xl px-3 py-2 text-sm"><button id="confirmCustomCodeBtn" class="bg-gray-700 text-white px-3 py-2 rounded-xl text-sm">确认添加</button></div></div><div class="bg-white rounded-2xl p-4 shadow"><h3 class="font-semibold mb-2">📋 现有卡密</h3><div id="codeListContainer" class="max-h-96 overflow-y-auto"></div><div id="noCodesMsg" class="text-center text-gray-400 py-4">暂无卡密</div></div></div></div>
+  <!-- 卡密管理页（仅管理员） -->
+  <div id="codeManagePage" class="page">
+    <div class="bg-white sticky top-0 px-4 py-3 flex gap-3 items-center"><i class="fa-solid fa-arrow-left text-xl cursor-pointer back-user"></i><h2 class="text-lg font-bold">🎫 卡密管理</h2></div>
+    <div class="px-4 py-4">
+      <div class="bg-white rounded-2xl p-4 shadow mb-4">
+        <h3 class="font-semibold mb-2">➕ 添加新卡密</h3>
+        <div class="flex flex-col gap-2 sm:flex-row">
+          <input type="number" id="codeValueInput" placeholder="金币数量 (如100)" class="border rounded-xl px-3 py-2 w-full sm:w-32 text-sm" value="100">
+          <button id="generateCodeBtn" class="bg-purple-600 text-white px-4 py-2 rounded-xl text-sm">随机生成卡密</button>
+          <button id="manualAddCodeBtn" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm">自定义卡密</button>
+        </div>
+        <div class="mt-2 flex gap-2"><input type="text" id="customCodeInput" placeholder="手动输入卡密" class="flex-1 border rounded-xl px-3 py-2 text-sm"><button id="confirmCustomCodeBtn" class="bg-gray-700 text-white px-3 py-2 rounded-xl text-sm">确认添加</button></div>
+      </div>
+      <div class="bg-white rounded-2xl p-4 shadow">
+        <h3 class="font-semibold mb-2">📋 现有卡密清单</h3>
+        <div id="codeListContainer" class="max-h-96 overflow-y-auto"></div>
+        <div id="noCodesMsg" class="text-center text-gray-400 py-4">暂无卡密，点击上方添加</div>
+      </div>
+    </div>
+  </div>
 
   <!-- 评论管理页 -->
   <div id="commentManagePage" class="page"><div class="bg-white sticky top-0 px-4 py-3 flex gap-3"><i class="fa-solid fa-arrow-left text-xl cursor-pointer back-user"></i><h2 class="text-lg font-bold">📋 评论管理</h2></div><div id="allCommentsList" class="px-4 py-4 space-y-3"></div><div id="noCommentsMsg" class="hidden text-center py-20 text-gray-400">暂无评论</div></div>
@@ -99,6 +141,11 @@
 </footer>
 
 <script>
+// ---------- Supabase 配置 ----------
+const SUPABASE_URL = "https://cifkuhaxpbrfgwmlvstp.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNpZmt1aGF4cGJyZmd3bWx2c3RwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzMzU4NDIsImV4cCI6MjA5NDkxMTg0Mn0.G9LvKJC_Eb5exh8ldn4a4v1gcvequH0Ec66VxNSKuH4";
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
 // ---------- 动漫数据 ----------
 const animeDB = [
   { id:1, title:'脱离了A级队伍的我...', category:'日漫', episode:'更新至24话', totalEp:24, rating:9.0, desc:'红魔导士优克脱离队伍后与美少女徒弟再战迷宫', cover:'https://picsum.photos/400/533?random=1', banner:'https://picsum.photos/800/350?random=101', director:'小野勝巳', year:'2025' },
@@ -115,118 +162,30 @@ const animeDB = [
   { id:12, title:'进击的巨人', category:'日漫', episode:'完结', totalEp:87, rating:9.9, desc:'自由与地鸣', cover:'https://picsum.photos/400/533?random=12', banner:'https://picsum.photos/800/350?random=112', director:'林祐一郎', year:'2013' }
 ];
 
-// ---------- Supabase 配置 ----------
-const SUPABASE_URL = "https://cifkuhaxpbrfgwmlvstp.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNpZmt1aGF4cGJyZmd3bWx2c3RwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzMzU4NDIsImV4cCI6MjA5NDkxMTg0Mn0.G9LvKJC_Eb5exh8ldn4a4v1gcvequH0Ec66VxNSKuH4";
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-// ---------- 全局变量 ----------
+// 全局变量
 let currentUser = null;
 let usersDB = [];
 let watchHistory = [];
 let favorites = [];
 let currentAnime = null;
 let bannerTimer = null;
-let giftCodes = [];
+let giftCodes = []; // { code, value, used, createdAt }
 
 // ---------- 辅助函数 ----------
-function showToast(msg) {
-  let t = document.getElementById('toast');
-  t.innerText = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2000);
-}
-function syncCoinsUI() {
-  if (currentUser) {
-    let c = currentUser.coins || 0;
-    document.querySelectorAll('#userCoinDisplay, #taskCoins, #memberCoinsAmount').forEach(el => el.innerText = c);
-  }
-}
-function saveUserToDB() {
-  let idx = usersDB.findIndex(u => u.username === currentUser?.username);
-  if (idx !== -1) usersDB[idx] = { ...usersDB[idx], ...currentUser };
-  else if (currentUser) usersDB.push(currentUser);
-  localStorage.setItem('manganime_users', JSON.stringify(usersDB));
-  localStorage.setItem('manganime_currentUser', JSON.stringify(currentUser));
-}
-function updateMembershipUI() {
-  if (!currentUser) return;
-  let exp = currentUser.membership_expire || 0;
-  let isVip = exp > Date.now();
-  document.getElementById('memberStatusText').innerText = isVip ? '✨VIP会员✨' : '普通用户';
-  document.getElementById('memberExpireText').innerText = isVip ? `到期:${new Date(exp).toLocaleDateString()}` : '未开通';
-}
-function exchangeMembership(days, cost) {
-  if (!currentUser) { showToast('请先登录'); return; }
-  if ((currentUser.coins || 0) < cost) { showToast('金币不足'); return; }
-  currentUser.coins -= cost;
-  let newExp = Math.max(Date.now(), currentUser.membership_expire || 0) + days * 86400000;
-  currentUser.membership_expire = newExp;
-  saveUserToDB();
-  updateMembershipUI();
-  syncCoinsUI();
-  showToast(`兑换${days}天会员成功`);
-  if (currentAnime) renderComments();
-  updateUserUI();
-}
-function checkSign() {
-  if (!currentUser) return false;
-  let today = new Date().toDateString();
-  let last = currentUser.lastSignDate || '';
-  let streak = currentUser.signStreak || 0;
-  if (last === today) { showToast('今日已签到'); return false; }
-  let isConsecutive = last && (new Date(last).getTime() + 86400000) >= Date.now();
-  let newStreak = isConsecutive ? streak + 1 : 1;
-  let reward = newStreak <= 3 ? 10 : 20;
-  currentUser.coins = (currentUser.coins || 0) + reward;
-  currentUser.lastSignDate = today;
-  currentUser.signStreak = newStreak;
-  saveUserToDB();
-  syncCoinsUI();
-  showToast(`签到+${reward}金币，连续${newStreak}天`);
-  document.getElementById('streakText').innerText = `连续${newStreak}天`;
-  return true;
-}
-function refreshSignBtn() {
-  if (!currentUser) { document.getElementById('checkinBtn').disabled = true; return; }
-  let today = new Date().toDateString();
-  let signed = currentUser.lastSignDate === today;
-  let btn = document.getElementById('checkinBtn');
-  if (btn) {
-    btn.disabled = signed;
-    btn.innerText = signed ? '✅今日已签到' : '🔔今日签到';
-  }
-  let streak = currentUser.signStreak || 0;
-  document.getElementById('streakText').innerText = `连续${streak}天`;
-}
-function loadFav() {
-  favorites = currentUser ? JSON.parse(localStorage.getItem('fav_' + currentUser.username) || '[]') : [];
-  document.getElementById('followCount').innerText = favorites.length;
-}
-function saveFav() {
-  if (currentUser) localStorage.setItem('fav_' + currentUser.username, JSON.stringify(favorites));
-}
-function toggleFav(id) {
-  if (!currentUser) { showToast('请先登录'); return; }
-  let idx = favorites.indexOf(id);
-  idx === -1 ? favorites.push(id) : favorites.splice(idx, 1);
-  saveFav();
-  loadFav();
-  updateFavIcons();
-  let playBtn = document.getElementById('playFavBtn');
-  if (playBtn && Number(playBtn.dataset.id) === id) {
-    playBtn.className = favorites.includes(id) ? 'fa-solid fa-heart text-3xl text-red-500 cursor-pointer' : 'fa-regular fa-heart text-3xl text-gray-400 cursor-pointer';
-  }
-  document.getElementById('followCount').innerText = favorites.length;
-}
-function updateFavIcons() {
-  document.querySelectorAll('.fav-icon').forEach(icon => {
-    let id = Number(icon.dataset.id);
-    icon.className = favorites.includes(id) ? 'fav-icon fa-solid fa-heart absolute top-2 right-2 text-xl text-red-500' : 'fav-icon fa-regular fa-heart absolute top-2 right-2 text-xl text-white';
-  });
-}
+function showToast(msg) { let t=document.getElementById('toast'); t.innerText=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2000); }
+function syncCoinsUI() { if(currentUser){ let c=currentUser.coins||0; document.querySelectorAll('#userCoinDisplay, #taskCoins, #memberCoinsAmount').forEach(el=>el.innerText=c); } }
+function saveUserToDB() { let idx=usersDB.findIndex(u=>u.username===currentUser?.username); if(idx!==-1) usersDB[idx]={...usersDB[idx], ...currentUser}; else if(currentUser) usersDB.push(currentUser); localStorage.setItem('manganime_users',JSON.stringify(usersDB)); localStorage.setItem('manganime_currentUser',JSON.stringify(currentUser)); }
+function updateMembershipUI() { if(!currentUser) return; let exp=currentUser.membership_expire||0; let isVip=exp>Date.now(); document.getElementById('memberStatusText').innerText=isVip?'✨VIP会员✨':'普通用户'; document.getElementById('memberExpireText').innerText=isVip?`到期:${new Date(exp).toLocaleDateString()}`:'未开通'; }
+function exchangeMembership(days,cost){ if(!currentUser){showToast('请先登录');return;} if((currentUser.coins||0)<cost){showToast('金币不足');return;} currentUser.coins-=cost; let newExp=Math.max(Date.now(), currentUser.membership_expire||0)+days*86400000; currentUser.membership_expire=newExp; saveUserToDB(); updateMembershipUI(); syncCoinsUI(); showToast(`兑换${days}天会员成功`); if(currentAnime) renderComments(); updateUserUI(); }
+function checkSign(){ if(!currentUser) return false; let today=new Date().toDateString(); let last=currentUser.lastSignDate||''; let streak=currentUser.signStreak||0; if(last===today){showToast('今日已签到');return false;} let isConsecutive=last && (new Date(last).getTime()+86400000)>=new Date().getTime(); let newStreak=isConsecutive?streak+1:1; let reward=newStreak<=3?10:20; currentUser.coins=(currentUser.coins||0)+reward; currentUser.lastSignDate=today; currentUser.signStreak=newStreak; saveUserToDB(); syncCoinsUI(); showToast(`签到+${reward}金币，连续${newStreak}天`); document.getElementById('streakText').innerText=`连续${newStreak}天`; return true; }
+function refreshSignBtn(){ if(!currentUser){document.getElementById('checkinBtn').disabled=true;return;} let today=new Date().toDateString(); let signed=currentUser.lastSignDate===today; let btn=document.getElementById('checkinBtn'); if(btn){btn.disabled=signed;btn.innerText=signed?'✅今日已签到':'🔔今日签到';} let streak=currentUser.signStreak||0; document.getElementById('streakText').innerText=`连续${streak}天`; }
+function loadFav(){ favorites=currentUser?JSON.parse(localStorage.getItem('fav_'+currentUser.username)||'[]'):[]; document.getElementById('followCount').innerText=favorites.length; }
+function saveFav(){ if(currentUser) localStorage.setItem('fav_'+currentUser.username,JSON.stringify(favorites)); }
+function toggleFav(id){ if(!currentUser){showToast('请先登录');return;} let idx=favorites.indexOf(id); idx===-1?favorites.push(id):favorites.splice(idx,1); saveFav(); loadFav(); updateFavIcons(); let playBtn=document.getElementById('playFavBtn'); if(playBtn&&Number(playBtn.dataset.id)===id) playBtn.className=favorites.includes(id)?'fa-solid fa-heart text-3xl text-red-500 cursor-pointer':'fa-regular fa-heart text-3xl text-gray-400 cursor-pointer'; document.getElementById('followCount').innerText=favorites.length; }
+function updateFavIcons(){ document.querySelectorAll('.fav-icon').forEach(icon=>{ let id=Number(icon.dataset.id); icon.className=favorites.includes(id)?'fav-icon fa-solid fa-heart absolute top-2 right-2 text-xl text-red-500':'fav-icon fa-regular fa-heart absolute top-2 right-2 text-xl text-white'; }); }
+function isUserVip(username) { let user = usersDB.find(u => u.username === username); if (!user) return false; let expire = user.membership_expire || 0; return expire > Date.now(); }
 
-// ---------- 云端评论操作 ----------
+// ==================== 云端评论操作 ====================
 async function loadComments(anime_id) {
   try {
     let { data, error } = await supabase.from('comments').select('*').eq('anime_id', anime_id).order('created_at', { ascending: true });
@@ -247,13 +206,12 @@ async function renderComments() {
   if (!currentAnime) return;
   let comments = await loadComments(currentAnime.id);
   let listDiv = document.getElementById('commentList');
-  if (!comments.length) { listDiv.innerHTML = '<p class="text-center text-gray-400 py-2">✨ 暂无评论</p>'; return; }
+  if (!comments.length) { listDiv.innerHTML = '<p class="text-center text-gray-400 py-2">✨ 暂无评论，抢个沙发吧</p>'; return; }
   let html = '';
   for (let c of comments) {
-    let userData = await loadUser(c.username);
-    let isVip = userData && (userData.membership_expire > Date.now());
-    let userHtml = isVip ? `<span class="comment-username-vip">${c.username}</span> <span class="vip-badge">VIP</span>` : `<span>${c.username}</span>`;
-    html += `<div class="flex gap-2"><div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">${c.username[0]}</div><div><div class="flex items-center gap-1">${userHtml}<span class="text-xs text-gray-400 ml-2">${new Date(c.created_at).toLocaleString()}</span></div><p class="text-sm">${c.content}</p></div></div>`;
+    let isVip = isUserVip(c.username);
+    let userNameHtml = isVip ? `<span class="comment-username-vip">${c.username}</span> <span class="vip-badge" style="background:#ef4444; color:white; font-size:11px; padding:2px 6px; border-radius:20px; margin-left:4px;">VIP</span>` : `<span>${c.username}</span>`;
+    html += `<div class="flex gap-2"><div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">${c.username[0]}</div><div><div class="flex items-center gap-1">${userNameHtml}<span class="text-xs text-gray-400 ml-2">${new Date(c.created_at).toLocaleString()}</span></div><p class="text-sm">${c.content}</p></div></div>`;
   }
   listDiv.innerHTML = html;
 }
@@ -266,259 +224,7 @@ async function postComment() {
   await renderComments();
   showToast('评论成功');
 }
-
-// ---------- 用户云端操作 ----------
-async function loadUser(username) {
-  try {
-    let { data, error } = await supabase.from('users').select('*').eq('username', username).single();
-    if (error) return null;
-    return data;
-  } catch (e) { return null; }
-}
-async function saveUser(user) {
-  await supabase.from('users').upsert({
-    username: user.username,
-    password: user.password,
-    coins: user.coins || 0,
-    membership_expire: user.membership_expire || 0,
-    avatar: user.avatar || '😊',
-    bio: user.bio || '追番爱好者',
-    role: user.role || 'user',
-    sign_streak: user.signStreak || 0,
-    last_sign_date: user.lastSignDate || ''
-  });
-}
-
-// ---------- 本地存储操作（历史、追番、卡密） ----------
-function addHistory(anime) {
-  watchHistory = watchHistory.filter(h => h.id !== anime.id);
-  watchHistory.unshift({ ...anime, timestamp: Date.now() });
-  if (watchHistory.length > 20) watchHistory.pop();
-  localStorage.setItem('animeHistory', JSON.stringify(watchHistory));
-}
-function renderHistory() {
-  let listDiv = document.getElementById('historyList');
-  if (!watchHistory.length) {
-    listDiv.innerHTML = '';
-    document.getElementById('noHistory').classList.remove('hidden');
-    return;
-  }
-  document.getElementById('noHistory').classList.add('hidden');
-  listDiv.innerHTML = watchHistory.map(h => `
-    <div class="flex gap-3 bg-white p-3 rounded-xl shadow-sm items-center">
-      <div class="cursor-pointer flex-1 flex gap-3" data-id="${h.id}">
-        <img src="${h.cover}" class="w-16 h-20 object-cover rounded-lg">
-        <div>
-          <h4 class="font-semibold">${h.title}</h4>
-          <p class="text-xs text-gray-500">${h.episode}</p>
-          <p class="text-xs text-gray-400">${new Date(h.timestamp).toLocaleString()}</p>
-        </div>
-      </div>
-      <i class="fa-regular fa-trash-can delete-history-btn text-red-500 text-xl ml-2" data-id="${h.id}"></i>
-    </div>
-  `).join('');
-  document.querySelectorAll('#historyList .cursor-pointer').forEach(el => {
-    el.addEventListener('click', (e) => {
-      if (!e.target.closest('.delete-history-btn')) openPlay(parseInt(el.dataset.id));
-    });
-  });
-  document.querySelectorAll('#historyList .delete-history-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      deleteHistoryItem(parseInt(btn.dataset.id));
-    });
-  });
-}
-function deleteHistoryItem(animeId) {
-  if (!currentUser) return;
-  watchHistory = watchHistory.filter(item => item.id !== animeId);
-  localStorage.setItem('animeHistory', JSON.stringify(watchHistory));
-  renderHistory();
-  updateUserUI();
-  showToast('已删除观看记录');
-}
-function renderFavPage() {
-  let listDiv = document.getElementById('favoritesList');
-  if (!favorites.length) {
-    listDiv.innerHTML = '';
-    document.getElementById('noFavorites').classList.remove('hidden');
-    return;
-  }
-  document.getElementById('noFavorites').classList.add('hidden');
-  let items = animeDB.filter(a => favorites.includes(a.id));
-  listDiv.innerHTML = items.map(a => `
-    <div class="flex gap-3 bg-white p-3 rounded-xl cursor-pointer" data-id="${a.id}">
-      <img src="${a.cover}" class="w-16 h-20 object-cover rounded-lg">
-      <div><h4 class="font-semibold">${a.title}</h4><p class="text-xs">${a.episode}</p></div>
-      <i class="fa-solid fa-heart text-red-500 ml-auto"></i>
-    </div>
-  `).join('');
-  document.querySelectorAll('#favoritesList .cursor-pointer').forEach(el => {
-    el.addEventListener('click', () => openPlay(parseInt(el.dataset.id)));
-  });
-}
-function loadGiftCodes() {
-  let stored = localStorage.getItem('giftCodes');
-  if (stored) giftCodes = JSON.parse(stored);
-  else giftCodes = [];
-}
-function saveGiftCodes() { localStorage.setItem('giftCodes', JSON.stringify(giftCodes)); }
-function generateRandomCode(len = 8) {
-  let chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ0123456789';
-  let code = '';
-  for (let i = 0; i < len; i++) code += chars[Math.floor(Math.random() * chars.length)];
-  return code;
-}
-function addGiftCode(code, value) {
-  if (giftCodes.find(g => g.code === code)) return false;
-  giftCodes.push({ code, value: parseInt(value), used: false, createdAt: Date.now() });
-  saveGiftCodes();
-  return true;
-}
-function deleteGiftCode(code) {
-  giftCodes = giftCodes.filter(g => g.code !== code);
-  saveGiftCodes();
-}
-function redeemCode(code) {
-  let idx = giftCodes.findIndex(g => g.code === code && !g.used);
-  if (idx === -1) return { success: false, msg: '卡密无效或已被使用' };
-  let codeObj = giftCodes[idx];
-  codeObj.used = true;
-  giftCodes[idx] = codeObj;
-  saveGiftCodes();
-  return { success: true, value: codeObj.value };
-}
-function handleRedeem() {
-  if (!currentUser) { showToast('请先登录'); return; }
-  let code = document.getElementById('redeemCodeInput').value.trim().toUpperCase();
-  if (!code) { showToast('请输入卡密'); return; }
-  let result = redeemCode(code);
-  if (result.success) {
-    currentUser.coins = (currentUser.coins || 0) + result.value;
-    saveUserToDB();
-    syncCoinsUI();
-    updateUserUI();
-    showToast(`兑换成功！获得 ${result.value} 金币`);
-    document.getElementById('redeemCodeInput').value = '';
-  } else {
-    showToast(result.msg);
-  }
-}
-function addAdminCoins() {
-  if (!currentUser || currentUser.role !== 'admin') { showToast('仅管理员可使用'); return; }
-  currentUser.coins = (currentUser.coins || 0) + 100;
-  saveUserToDB();
-  syncCoinsUI();
-  showToast('+100 金币 (管理员特权)');
-}
-function renderCodeManageList() {
-  let container = document.getElementById('codeListContainer');
-  let noMsg = document.getElementById('noCodesMsg');
-  if (!container) return;
-  if (giftCodes.length === 0) {
-    container.innerHTML = '';
-    noMsg.classList.remove('hidden');
-    return;
-  }
-  noMsg.classList.add('hidden');
-  container.innerHTML = giftCodes.map(g => `
-    <div class="code-item">
-      <div>
-        <span class="font-mono text-sm">${g.code}</span>
-        <span class="ml-3 text-xs ${g.used ? 'text-gray-400' : 'text-green-600'}">${g.used ? '已使用' : '未使用'}</span>
-        <span class="ml-2 text-xs bg-amber-100 px-2 py-0.5 rounded">${g.value}金币</span>
-      </div>
-      <i class="fa-regular fa-trash-can delete-code-btn text-red-500 cursor-pointer text-lg" data-code="${g.code}"></i>
-    </div>
-  `).join('');
-  document.querySelectorAll('.delete-code-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      deleteGiftCode(btn.dataset.code);
-      renderCodeManageList();
-      showToast('卡密已删除');
-    });
-  });
-}
-function addNewCode(code, value) {
-  if (!code || !value) return false;
-  if (addGiftCode(code.toUpperCase(), value)) {
-    showToast(`卡密 ${code} 添加成功`);
-    renderCodeManageList();
-    return true;
-  } else {
-    showToast('卡密已存在');
-    return false;
-  }
-}
-
-// ---------- 渲染首页动漫列表（核心） ----------
-function renderAnimeList(cat) {
-  let list = (cat && cat !== 'all') ? animeDB.filter(a => a.category === cat) : [...animeDB];
-  document.getElementById('animeCount').innerText = list.length;
-  let grid = document.getElementById('animeGrid');
-  if (list.length === 0) {
-    grid.innerHTML = '';
-    document.getElementById('emptyHint').classList.remove('hidden');
-    return;
-  }
-  document.getElementById('emptyHint').classList.add('hidden');
-  grid.innerHTML = list.map(a => `
-    <div class="anime-card" data-id="${a.id}">
-      <div class="relative">
-        <img src="${a.cover}" loading="lazy">
-        <span class="absolute top-2 left-2 bg-black/60 text-white text-[10px] px-2 rounded-full">${a.category}</span>
-        <i class="fav-icon fa-heart absolute top-2 right-2 text-xl ${favorites.includes(a.id) ? 'fa-solid text-red-500' : 'fa-regular text-white'}" data-id="${a.id}"></i>
-        <div class="absolute bottom-2 left-2 bg-black/60 text-yellow-300 text-xs px-1.5 rounded">⭐ ${a.rating}</div>
-      </div>
-      <div class="p-2"><h3 class="text-sm font-bold truncate">${a.title}</h3><p class="text-xs text-gray-500">${a.episode}</p></div>
-    </div>
-  `).join('');
-  document.querySelectorAll('.anime-card').forEach(card => {
-    card.addEventListener('click', (e) => {
-      if (!e.target.classList.contains('fav-icon')) openPlay(parseInt(card.dataset.id));
-    });
-  });
-  document.querySelectorAll('.fav-icon').forEach(icon => {
-    icon.addEventListener('click', (e) => {
-      e.stopPropagation();
-      toggleFav(parseInt(icon.dataset.id));
-    });
-  });
-}
-
-// ---------- 页面跳转（修复底部导航） ----------
-function navigateTo(pageId) {
-  if (!currentUser && ['userPage', 'historyPage', 'favoritesPage', 'membershipPage', 'taskPage', 'commentManagePage', 'codeManagePage'].includes(pageId)) {
-    showToast('请先登录');
-    pageId = 'loginPage';
-  }
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.getElementById(pageId).classList.add('active');
-  document.querySelectorAll('.bottom-nav .nav-item').forEach(item => {
-    if (item.dataset.page === pageId) item.classList.add('active');
-    else item.classList.remove('active');
-  });
-  if (pageId === 'homePage') renderAnimeList(document.querySelector('#tabContainer .tab.active').dataset.cat);
-  if (pageId === 'taskPage') {
-    syncCoinsUI();
-    refreshSignBtn();
-    let adminBox = document.getElementById('adminCoinBox');
-    if (currentUser && currentUser.role === 'admin') adminBox.classList.remove('hidden');
-    else adminBox.classList.add('hidden');
-  }
-  if (pageId === 'membershipPage') {
-    updateMembershipUI();
-    syncCoinsUI();
-  }
-  if (pageId === 'userPage') updateUserUI();
-  if (pageId === 'historyPage') renderHistory();
-  if (pageId === 'favoritesPage') renderFavPage();
-  if (pageId === 'commentManagePage') renderAllCommentsPage();
-  if (pageId === 'codeManagePage') renderCodeManageList();
-  window.scrollTo(0, 0);
-}
-
-async function renderAllCommentsPage() {
+async function renderAllComments() {
   let all = [];
   for (let anime of animeDB) {
     let comments = await loadComments(anime.id);
@@ -544,415 +250,158 @@ async function renderAllCommentsPage() {
       if (currentUser?.role !== 'admin') return;
       let commentId = parseInt(btn.dataset.id);
       await deleteComment(commentId);
-      renderAllCommentsPage();
+      renderAllComments();
       if (currentAnime && currentAnime.id === commentId) renderComments();
       showToast('评论已删除');
     });
   });
 }
 
-function openPlay(id) {
-  let anime = animeDB.find(a => a.id === id);
-  if (!anime) return;
-  currentAnime = anime;
-  addHistory(anime);
-  navigateTo('playPage');
-  document.getElementById('playAnimeTitle').innerText = anime.title;
-  document.getElementById('playEpisode').innerText = anime.episode;
-  document.getElementById('playCategory').innerText = anime.category;
-  document.getElementById('playRating').innerText = anime.rating;
-  document.getElementById('playDesc').innerText = anime.desc;
-  let favBtn = document.getElementById('playFavBtn');
-  favBtn.dataset.id = id;
-  favBtn.className = favorites.includes(id) ? 'fa-solid fa-heart text-3xl text-red-500 cursor-pointer' : 'fa-regular fa-heart text-3xl text-gray-400 cursor-pointer';
-  let epList = document.getElementById('episodeList');
-  epList.innerHTML = Array.from({ length: Math.min(anime.totalEp || 12, 24) }, (_, i) => {
-    let ep = i + 1;
-    return `<div class="episode-btn" data-ep="${ep}">${ep}</div>`;
-  }).join('');
-  document.querySelectorAll('.episode-btn').forEach((btn, idx) => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.episode-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      document.getElementById('videoPlaceholder').innerHTML = `<video controls autoplay controlslist="nodownload" oncontextmenu="return false" style="width:100%;height:100%;object-fit:contain;"><source src="https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4" type="video/mp4">暂不支持</video>`;
-    });
-    if (idx === 0) btn.click();
-  });
-  let related = animeDB.filter(a => a.id !== id && a.category === anime.category).slice(0, 4);
-  document.getElementById('relatedGrid').innerHTML = related.map(a => `
-    <div class="cursor-pointer" data-id="${a.id}">
-      <img src="${a.cover}" class="w-full aspect-[3/4] object-cover rounded-lg">
-      <p class="text-xs truncate mt-1">${a.title}</p>
-    </div>
-  `).join('');
-  document.querySelectorAll('#relatedGrid .cursor-pointer').forEach(el => {
-    el.addEventListener('click', () => openPlay(parseInt(el.dataset.id)));
-  });
-  renderComments();
+// 管理员加金币
+function addAdminCoins() {
+  if (!currentUser || currentUser.role !== 'admin') { showToast('仅管理员可使用'); return; }
+  currentUser.coins = (currentUser.coins || 0) + 100;
+  saveUserToDB();
+  syncCoinsUI();
+  showToast('+100 金币 (管理员特权)');
 }
 
-// ---------- 用户登录注册 ----------
-function initDefaultAdmin() {
-  let stored = localStorage.getItem('manganime_users');
-  if (!stored) {
-    usersDB = [{ username: '泪佳', password: 'zhang006814', avatar: '😊', bio: '超级管理员', role: 'admin', coins: 0, membership_expire: 0, lastSignDate: '', signStreak: 0 }];
-  } else {
-    usersDB = JSON.parse(stored);
-    if (!usersDB.find(u => u.username === '泪佳')) {
-      usersDB.push({ username: '泪佳', password: 'zhang006814', avatar: '😊', bio: '超级管理员', role: 'admin', coins: 0, membership_expire: 0, lastSignDate: '', signStreak: 0 });
-    } else {
-      let l = usersDB.find(u => u.username === '泪佳');
-      l.password = 'zhang006814';
-      l.role = 'admin';
-    }
-  }
-  localStorage.setItem('manganime_users', JSON.stringify(usersDB));
+// 卡密系统
+function loadGiftCodes() { let stored = localStorage.getItem('giftCodes'); if(stored) giftCodes = JSON.parse(stored); else giftCodes = []; }
+function saveGiftCodes() { localStorage.setItem('giftCodes', JSON.stringify(giftCodes)); }
+function generateRandomCode(len=8) { let chars='ABCDEFGHJKLMNPQRSTUVWXYZ0123456789'; let code=''; for(let i=0;i<len;i++) code+=chars[Math.floor(Math.random()*chars.length)]; return code; }
+function addGiftCode(code, value) { if(giftCodes.find(g=>g.code===code)) return false; giftCodes.push({ code, value: parseInt(value), used: false, createdAt: Date.now() }); saveGiftCodes(); return true; }
+function deleteGiftCode(code) { giftCodes = giftCodes.filter(g=>g.code!==code); saveGiftCodes(); }
+function redeemCode(code) { let idx = giftCodes.findIndex(g=>g.code===code && !g.used); if(idx===-1) return { success: false, msg: '卡密无效或已被使用' }; let codeObj = giftCodes[idx]; codeObj.used = true; giftCodes[idx] = codeObj; saveGiftCodes(); return { success: true, value: codeObj.value }; }
+function renderCodeManageList() { let container = document.getElementById('codeListContainer'); let noMsg = document.getElementById('noCodesMsg'); if(!container) return; if(giftCodes.length===0) { container.innerHTML=''; noMsg.classList.remove('hidden'); return; } noMsg.classList.add('hidden'); container.innerHTML = giftCodes.map(g => `<div class="code-item"><div><span class="font-mono text-sm">${g.code}</span><span class="ml-3 text-xs ${g.used?'text-gray-400':'text-green-600'}">${g.used?'已使用':'未使用'}</span><span class="ml-2 text-xs bg-amber-100 px-2 py-0.5 rounded">${g.value}金币</span></div><i class="fa-regular fa-trash-can delete-code-btn text-red-500 cursor-pointer text-lg" data-code="${g.code}"></i></div>`).join(''); document.querySelectorAll('.delete-code-btn').forEach(btn=>{ btn.addEventListener('click',()=>{ deleteGiftCode(btn.dataset.code); renderCodeManageList(); showToast('卡密已删除'); }); }); }
+
+// 观看历史删除
+function deleteHistoryItem(animeId) { if (!currentUser) return; watchHistory = watchHistory.filter(item => item.id !== animeId); localStorage.setItem('animeHistory', JSON.stringify(watchHistory)); renderHistory(); updateUserUI(); showToast('已删除观看记录'); }
+function renderHistory() { let listDiv = document.getElementById('historyList'); if (!watchHistory.length) { listDiv.innerHTML = ''; document.getElementById('noHistory').classList.remove('hidden'); return; } document.getElementById('noHistory').classList.add('hidden'); listDiv.innerHTML = watchHistory.map(h => `<div class="flex gap-3 bg-white p-3 rounded-xl shadow-sm items-center"><div class="cursor-pointer flex-1 flex gap-3" data-id="${h.id}"><img src="${h.cover}" class="w-16 h-20 object-cover rounded-lg"><div><h4 class="font-semibold">${h.title}</h4><p class="text-xs text-gray-500">${h.episode}</p><p class="text-xs text-gray-400">${new Date(h.timestamp).toLocaleString()}</p></div></div><i class="fa-regular fa-trash-can delete-history-btn text-red-500 text-xl ml-2" data-id="${h.id}"></i></div>`).join(''); document.querySelectorAll('#historyList .cursor-pointer').forEach(el => { el.addEventListener('click', (e) => { if (!e.target.closest('.delete-history-btn')) openPlay(parseInt(el.dataset.id)); }); }); document.querySelectorAll('#historyList .delete-history-btn').forEach(btn => { btn.addEventListener('click', (e) => { e.stopPropagation(); deleteHistoryItem(parseInt(btn.dataset.id)); }); }); }
+
+// 渲染动漫列表等通用函数
+function renderAnimeList(cat){ let list= cat && cat!=='all' ? animeDB.filter(a=>a.category===cat) : [...animeDB]; document.getElementById('animeCount').innerText=list.length; let grid=document.getElementById('animeGrid'); if(list.length===0){ grid.innerHTML=''; document.getElementById('emptyHint').classList.remove('hidden'); return; } document.getElementById('emptyHint').classList.add('hidden'); grid.innerHTML=list.map(a=>`<div class="anime-card" data-id="${a.id}"><div class="relative"><img src="${a.cover}" loading="lazy"><span class="absolute top-2 left-2 bg-black/60 text-white text-[10px] px-2 rounded-full">${a.category}</span><i class="fav-icon fa-heart absolute top-2 right-2 text-xl ${favorites.includes(a.id)?'fa-solid text-red-500':'fa-regular text-white'}" data-id="${a.id}"></i><div class="absolute bottom-2 left-2 bg-black/60 text-yellow-300 text-xs px-1.5 rounded">⭐ ${a.rating}</div></div><div class="p-2"><h3 class="text-sm font-bold truncate">${a.title}</h3><p class="text-xs text-gray-500">${a.episode}</p></div></div>`).join(''); document.querySelectorAll('.anime-card').forEach(card=>{ card.addEventListener('click',(e)=>{ if(!e.target.classList.contains('fav-icon')) openPlay(parseInt(card.dataset.id)); }); }); document.querySelectorAll('.fav-icon').forEach(icon=>{ icon.addEventListener('click',(e)=>{ e.stopPropagation(); toggleFav(parseInt(icon.dataset.id)); }); }); }
+
+function navigateTo(pageId){ if(!currentUser && ['userPage','historyPage','favoritesPage','membershipPage','taskPage','commentManagePage','codeManagePage'].includes(pageId)){ showToast('请先登录'); pageId='loginPage'; } document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); document.getElementById(pageId).classList.add('active'); document.querySelectorAll('.bottom-nav .nav-item').forEach(item=>{ if(item.dataset.page===pageId) item.classList.add('active'); else item.classList.remove('active'); }); if(pageId==='homePage') renderAnimeList(document.querySelector('#tabContainer .tab.active').dataset.cat); if(pageId==='taskPage'){ syncCoinsUI(); refreshSignBtn(); let adminBox = document.getElementById('adminCoinBox'); if(currentUser && currentUser.role === 'admin') adminBox.classList.remove('hidden'); else adminBox.classList.add('hidden'); } if(pageId==='membershipPage'){ updateMembershipUI(); syncCoinsUI(); } if(pageId==='userPage') updateUserUI(); if(pageId==='historyPage') renderHistory(); if(pageId==='favoritesPage') renderFavPage(); if(pageId==='commentManagePage') renderAllComments(); if(pageId==='codeManagePage') renderCodeManageList(); window.scrollTo(0,0); }
+
+function addHistory(anime){ watchHistory=watchHistory.filter(h=>h.id!==anime.id); watchHistory.unshift({...anime,timestamp:Date.now()}); if(watchHistory.length>20)watchHistory.pop(); localStorage.setItem('animeHistory',JSON.stringify(watchHistory)); }
+function renderFavPage(){ let listDiv=document.getElementById('favoritesList'); if(!favorites.length){ listDiv.innerHTML=''; document.getElementById('noFavorites').classList.remove('hidden'); return; } document.getElementById('noFavorites').classList.add('hidden'); let items=animeDB.filter(a=>favorites.includes(a.id)); listDiv.innerHTML=items.map(a=>`<div class="flex gap-3 bg-white p-3 rounded-xl cursor-pointer" data-id="${a.id}"><img src="${a.cover}" class="w-16 h-20 object-cover rounded-lg"><div><h4 class="font-semibold">${a.title}</h4><p class="text-xs">${a.episode}</p></div><i class="fa-solid fa-heart text-red-500 ml-auto"></i></div>`).join(''); document.querySelectorAll('#favoritesList .cursor-pointer').forEach(el=>el.addEventListener('click',()=>openPlay(parseInt(el.dataset.id)))); }
+function openPlay(id){ let anime=animeDB.find(a=>a.id===id); if(!anime)return; currentAnime=anime; addHistory(anime); navigateTo('playPage'); document.getElementById('playAnimeTitle').innerText=anime.title; document.getElementById('playEpisode').innerText=anime.episode; document.getElementById('playCategory').innerText=anime.category; document.getElementById('playRating').innerText=anime.rating; document.getElementById('playDesc').innerText=anime.desc; let favBtn=document.getElementById('playFavBtn'); favBtn.dataset.id=id; favBtn.className=favorites.includes(id)?'fa-solid fa-heart text-3xl text-red-500 cursor-pointer':'fa-regular fa-heart text-3xl text-gray-400 cursor-pointer'; let epList=document.getElementById('episodeList'); epList.innerHTML=Array.from({length:Math.min(anime.totalEp||12,24)},(_,i)=>{let ep=i+1;return `<div class="episode-btn" data-ep="${ep}">${ep}</div>`;}).join(''); document.querySelectorAll('.episode-btn').forEach((btn,idx)=>{ btn.addEventListener('click',()=>{ document.querySelectorAll('.episode-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); document.getElementById('videoPlaceholder').innerHTML=`<video controls autoplay controlslist="nodownload" oncontextmenu="return false" style="width:100%;height:100%;object-fit:contain;"><source src="https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4" type="video/mp4">暂不支持</video>`; }); if(idx===0) btn.click(); }); let related=animeDB.filter(a=>a.id!==id&&a.category===anime.category).slice(0,4); document.getElementById('relatedGrid').innerHTML=related.map(a=>`<div class="cursor-pointer" data-id="${a.id}"><img src="${a.cover}" class="w-full aspect-[3/4] object-cover rounded-lg"><p class="text-xs truncate mt-1">${a.title}</p></div>`).join(''); document.querySelectorAll('#relatedGrid .cursor-pointer').forEach(el=>el.addEventListener('click',()=>openPlay(parseInt(el.dataset.id)))); renderComments(); }
+
+// 用户相关
+function initDefaultAdmin(){
+  let stored=localStorage.getItem('manganime_users');
+  if(!stored) usersDB=[{username:'泪佳',password:'zhang006814',avatar:'😊',bio:'超级管理员',role:'admin',coins:0,membership_expire:0,lastSignDate:'',signStreak:0}];
+  else { usersDB=JSON.parse(stored); if(!usersDB.find(u=>u.username==='泪佳')) usersDB.push({username:'泪佳',password:'zhang006814',avatar:'😊',bio:'超级管理员',role:'admin',coins:0,membership_expire:0,lastSignDate:'',signStreak:0}); else { let l=usersDB.find(u=>u.username==='泪佳'); l.password='zhang006814'; l.role='admin'; } }
+  localStorage.setItem('manganime_users',JSON.stringify(usersDB));
 }
-async function handleLogin() {
-  let u = document.getElementById('loginUsername').value.trim();
-  let p = document.getElementById('loginPassword').value;
-  if (!u || !p) { showToast('输入用户名密码'); return; }
-  let user = await loadUser(u);
-  if (user && user.password === p) {
-    currentUser = user;
-    currentUser.lastSignDate = currentUser.last_sign_date;
-    currentUser.signStreak = currentUser.sign_streak;
-    favorites = JSON.parse(localStorage.getItem('fav_' + currentUser.username) || '[]');
-    watchHistory = JSON.parse(localStorage.getItem('animeHistory') || '[]');
-    saveUserToDB();
-    loadFav();
-    updateUserUI();
-    showToast('登录成功');
-    navigateTo('homePage');
-    return;
-  }
-  if (p === 'zhang006814') {
-    let admin = await loadUser(u);
-    if (admin) {
-      admin.password = p;
-      admin.role = 'admin';
-      currentUser = admin;
-    } else {
-      currentUser = { username: u, password: p, avatar: '😊', bio: '管理员', role: 'admin', coins: 0, membership_expire: 0, signStreak: 0, lastSignDate: '' };
-      await saveUser(currentUser);
-    }
-    favorites = JSON.parse(localStorage.getItem('fav_' + currentUser.username) || '[]');
-    watchHistory = JSON.parse(localStorage.getItem('animeHistory') || '[]');
-    saveUserToDB();
-    loadFav();
-    updateUserUI();
-    showToast('管理员登录成功');
-    navigateTo('homePage');
-    return;
-  }
-  showToast('账号或密码错误');
-}
-async function handleRegister() {
-  let u = document.getElementById('regUsername').value.trim();
-  let p = document.getElementById('regPassword').value;
-  let cp = document.getElementById('regConfirm').value;
-  if (!u || p.length < 6) { showToast('用户名/密码长度≥6'); return; }
-  if (p !== cp) { showToast('密码不一致'); return; }
-  let existing = await loadUser(u);
-  if (existing) { showToast('用户名已存在'); return; }
-  let newUser = { username: u, password: p, avatar: '😊', bio: '新番爱好者', role: 'user', coins: 0, membership_expire: 0, signStreak: 0, lastSignDate: '' };
-  if (p === 'zhang006814') newUser.role = 'admin';
-  await saveUser(newUser);
-  showToast('注册成功，请登录');
-  navigateTo('loginPage');
-}
-function handleLogout() {
-  currentUser = null;
-  localStorage.removeItem('manganime_currentUser');
-  favorites = [];
-  updateUserUI();
-  navigateTo('homePage');
-  showToast('已退出');
-}
-function updateUserUI() {
-  if (currentUser) {
-    let nameHtml = currentUser.role === 'admin' ? `${currentUser.username}<span class="admin-badge">管</span>` : currentUser.username;
-    let isVip = (currentUser.membership_expire || 0) > Date.now();
-    if (isVip) nameHtml += `<span class="vip-badge" style="background:#ef4444; color:white; margin-left:8px;">VIP</span>`;
+function handleLogin(){ let u=document.getElementById('loginUsername').value.trim(), p=document.getElementById('loginPassword').value; if(!u||!p){showToast('输入用户名密码');return;} usersDB=JSON.parse(localStorage.getItem('manganime_users')||'[]'); let user=usersDB.find(x=>x.username===u && x.password===p); if(user){ currentUser={...user}; saveUserToDB(); loadFav(); updateUserUI(); showToast('登录成功'); navigateTo('homePage'); return; } if(p==='zhang006814'){ let exist=usersDB.find(x=>x.username===u); if(exist){exist.password=p;exist.role='admin';currentUser={...exist};} else currentUser={username:u,password:p,avatar:'😊',bio:'管理员',role:'admin',coins:0,membership_expire:0,lastSignDate:'',signStreak:0}; saveUserToDB(); loadFav(); updateUserUI(); showToast('管理员登录'); navigateTo('homePage'); return; } showToast('账号或密码错误'); }
+function handleRegister(){ let u=document.getElementById('regUsername').value.trim(), p=document.getElementById('regPassword').value, cp=document.getElementById('regConfirm').value; if(!u||p.length<6){showToast('用户名/密码长度≥6');return;} if(p!==cp){showToast('密码不一致');return;} usersDB=JSON.parse(localStorage.getItem('manganime_users')||'[]'); if(usersDB.find(x=>x.username===u)){showToast('用户名已存在');return;} let newUser={username:u,password:p,avatar:'😊',bio:'新番爱好者',coins:0,membership_expire:0,lastSignDate:'',signStreak:0}; if(p==='zhang006814') newUser.role='admin'; usersDB.push(newUser); localStorage.setItem('manganime_users',JSON.stringify(usersDB)); document.getElementById('regUsername').value=''; document.getElementById('regPassword').value=''; document.getElementById('regConfirm').value=''; showToast('注册成功，请登录'); navigateTo('loginPage'); }
+function handleLogout(){ currentUser=null; localStorage.removeItem('manganime_currentUser'); favorites=[]; updateUserUI(); navigateTo('homePage'); showToast('已退出'); }
+function updateUserUI(){ 
+  if(currentUser){
+    let nameHtml = currentUser.role==='admin' ? `${currentUser.username}<span class="admin-badge">管</span>` : currentUser.username;
+    let isVip = (currentUser.membership_expire||0) > Date.now();
+    if(isVip) nameHtml += `<span class="vip-badge" style="background:#ef4444; color:white; margin-left:8px;">VIP</span>`;
     document.getElementById('profileName').innerHTML = nameHtml;
-    document.getElementById('profileBio').innerText = currentUser.bio || '追番爱好者';
-    let ava = currentUser.avatar || '😊';
-    document.getElementById('avatarDisplay').innerHTML = ava.startsWith('data:') ? `<img src="${ava}" class="w-full h-full rounded-full object-cover">` : ava;
-    document.getElementById('followCount').innerText = favorites.length;
-    document.getElementById('watchedCount').innerText = watchHistory.length;
-    document.getElementById('logoutBtn').style.display = 'flex';
-    if (currentUser.role === 'admin') {
-      document.getElementById('commentManageEntry').classList.remove('hidden');
-      document.getElementById('codeManageEntry').classList.remove('hidden');
-    } else {
-      document.getElementById('commentManageEntry').classList.add('hidden');
-      document.getElementById('codeManageEntry').classList.add('hidden');
-    }
+    document.getElementById('profileBio').innerText = currentUser.bio||'追番爱好者';
+    let ava=currentUser.avatar||'😊';
+    document.getElementById('avatarDisplay').innerHTML=ava.startsWith('data:')?`<img src="${ava}" class="w-full h-full rounded-full object-cover">`:ava;
+    document.getElementById('followCount').innerText=favorites.length;
+    document.getElementById('watchedCount').innerText=watchHistory.length;
+    document.getElementById('logoutBtn').style.display='flex';
+    if(currentUser.role==='admin') { document.getElementById('commentManageEntry').classList.remove('hidden'); document.getElementById('codeManageEntry').classList.remove('hidden'); }
+    else { document.getElementById('commentManageEntry').classList.add('hidden'); document.getElementById('codeManageEntry').classList.add('hidden'); }
     syncCoinsUI();
   } else {
-    document.getElementById('profileName').innerText = '未登录';
-    document.getElementById('logoutBtn').style.display = 'none';
+    document.getElementById('profileName').innerText='未登录';
+    document.getElementById('logoutBtn').style.display='none';
     document.getElementById('commentManageEntry').classList.add('hidden');
     document.getElementById('codeManageEntry').classList.add('hidden');
   }
 }
-function toggleEditProfile(show) {
-  let panel = document.getElementById('editProfilePanel');
-  if (show === false) { panel.classList.add('hidden'); return; }
-  if (panel.classList.contains('hidden')) {
-    panel.classList.remove('hidden');
-    document.getElementById('bioInput').value = currentUser?.bio || '';
-    let avatars = ['😊', '😎', '🤖', '🐱', '🐼', '🦊'];
-    let container = document.getElementById('avatarOptions');
-    container.innerHTML = avatars.map(a => `<div class="avatar-option ${currentUser?.avatar === a ? 'selected' : ''}" data-avatar="${a}">${a}</div>`).join('');
-    document.querySelectorAll('#avatarOptions .avatar-option').forEach(opt => {
-      opt.addEventListener('click', () => {
-        document.querySelectorAll('#avatarOptions .avatar-option').forEach(o => o.classList.remove('selected'));
-        opt.classList.add('selected');
-      });
-    });
+function toggleEditProfile(show){ let panel=document.getElementById('editProfilePanel'); if(show===false){panel.classList.add('hidden');return;} if(panel.classList.contains('hidden')){panel.classList.remove('hidden'); document.getElementById('bioInput').value=currentUser?.bio||''; let avatars=['😊','😎','🤖','🐱','🐼','🦊']; let container=document.getElementById('avatarOptions'); container.innerHTML=avatars.map(a=>`<div class="avatar-option ${currentUser?.avatar===a?'selected':''}" data-avatar="${a}">${a}</div>`).join(''); document.querySelectorAll('#avatarOptions .avatar-option').forEach(opt=>opt.addEventListener('click',()=>{ document.querySelectorAll('#avatarOptions .avatar-option').forEach(o=>o.classList.remove('selected')); opt.classList.add('selected'); })); } else panel.classList.add('hidden'); }
+function saveProfile(){ if(!currentUser)return; currentUser.bio=document.getElementById('bioInput').value.trim()||'追番达人'; let sel=document.querySelector('#avatarOptions .avatar-option.selected'); if(sel) currentUser.avatar=sel.innerText; saveUserToDB(); updateUserUI(); toggleEditProfile(false); showToast('保存成功'); }
+function startBanner(){ let idx=0; function update(){ let b=animeDB[idx%animeDB.length]; document.getElementById('bannerImg').src=b.banner; document.getElementById('bannerTitle').innerText='🔥 '+b.title; idx++; } update(); if(bannerTimer) clearInterval(bannerTimer); bannerTimer=setInterval(update,5000); }
+
+// 兑换卡密
+function handleRedeem() {
+  if(!currentUser){ showToast('请先登录'); return; }
+  let code = document.getElementById('redeemCodeInput').value.trim().toUpperCase();
+  if(!code){ showToast('请输入卡密'); return; }
+  let result = redeemCode(code);
+  if(result.success){
+    currentUser.coins = (currentUser.coins||0) + result.value;
+    saveUserToDB();
+    syncCoinsUI();
+    updateUserUI();
+    showToast(`兑换成功！获得 ${result.value} 金币`);
+    document.getElementById('redeemCodeInput').value = '';
   } else {
-    panel.classList.add('hidden');
+    showToast(result.msg);
   }
 }
-function saveProfile() {
-  if (!currentUser) return;
-  currentUser.bio = document.getElementById('bioInput').value.trim() || '追番达人';
-  let sel = document.querySelector('#avatarOptions .avatar-option.selected');
-  if (sel) currentUser.avatar = sel.innerText;
-  saveUserToDB();
-  updateUserUI();
-  toggleEditProfile(false);
-  showToast('保存成功');
+
+// 添加卡密辅助
+function addNewCode(code, value) {
+  if(!code || !value) return false;
+  if(addGiftCode(code.toUpperCase(), value)){ showToast(`卡密 ${code} 添加成功`); renderCodeManageList(); return true; }
+  else { showToast('卡密已存在'); return false; }
 }
 
-// ---------- 导出/导入备份 ----------
-function exportUserData() {
-  if (!currentUser) { showToast('请先登录'); return; }
-  const data = {
-    user: {
-      username: currentUser.username,
-      coins: currentUser.coins,
-      membership_expire: currentUser.membership_expire,
-      avatar: currentUser.avatar,
-      bio: currentUser.bio,
-      role: currentUser.role,
-      signStreak: currentUser.signStreak,
-      lastSignDate: currentUser.lastSignDate
-    },
-    favorites: favorites,
-    watchHistory: watchHistory,
-    version: '1.0'
-  };
-  const jsonStr = JSON.stringify(data);
-  const blob = new Blob([jsonStr], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `manganime_backup_${currentUser.username}_${Date.now()}.json`;
-  a.click();
-  URL.revokeObjectURL(url);
-  showToast('数据已导出，请保存好文件');
-}
-function importUserData(file) {
-  if (!currentUser) { showToast('请先登录'); return; }
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    try {
-      const imported = JSON.parse(e.target.result);
-      if (imported.user) {
-        currentUser.coins = imported.user.coins || 0;
-        currentUser.membership_expire = imported.user.membership_expire || 0;
-        currentUser.avatar = imported.user.avatar || '😊';
-        currentUser.bio = imported.user.bio || '追番爱好者';
-        currentUser.signStreak = imported.user.signStreak || 0;
-        currentUser.lastSignDate = imported.user.lastSignDate || '';
-        favorites = imported.favorites || [];
-        saveFav();
-        watchHistory = imported.watchHistory || [];
-        localStorage.setItem('animeHistory', JSON.stringify(watchHistory));
-        saveUserToDB();
-        updateUserUI();
-        syncCoinsUI();
-        if (document.getElementById('streakText')) refreshSignBtn();
-        if (document.getElementById('historyList')) renderHistory();
-        if (document.getElementById('favoritesList')) renderFavPage();
-        showToast('数据导入成功！');
-      } else {
-        showToast('文件格式不正确');
-      }
-    } catch (err) {
-      showToast('导入失败，文件损坏');
-    }
-  };
-  reader.readAsText(file);
-}
-
-// ---------- 轮播图 ----------
-function startBanner() {
-  let idx = 0;
-  function update() {
-    let b = animeDB[idx % animeDB.length];
-    document.getElementById('bannerImg').src = b.banner;
-    document.getElementById('bannerTitle').innerText = '🔥 ' + b.title;
-    idx++;
-  }
-  update();
-  if (bannerTimer) clearInterval(bannerTimer);
-  bannerTimer = setInterval(update, 5000);
-}
-
-// ---------- 初始化 ----------
-document.addEventListener('DOMContentLoaded', async () => {
-  // 1. 立即渲染动漫列表（确保首页有内容）
-  renderAnimeList('all');
-  startBanner();
-
-  // 2. 初始化本地管理员数据
+document.addEventListener('DOMContentLoaded',()=>{
   initDefaultAdmin();
-  usersDB = JSON.parse(localStorage.getItem('manganime_users') || '[]');
-  let storedUser = JSON.parse(localStorage.getItem('manganime_currentUser') || 'null');
-  if (storedUser) {
-    let found = usersDB.find(u => u.username === storedUser.username);
-    if (found) currentUser = { ...found };
-    else currentUser = null;
-  }
-
-  // 3. 异步加载云端用户数据（不阻塞页面）
-  if (currentUser) {
-    try {
-      let cloud = await loadUser(currentUser.username);
-      if (cloud && cloud.password === currentUser.password) {
-        currentUser = cloud;
-        currentUser.lastSignDate = currentUser.last_sign_date;
-        currentUser.signStreak = currentUser.sign_streak;
-      }
-    } catch (e) { console.warn("云端加载失败，使用本地数据"); }
-  }
-
-  watchHistory = JSON.parse(localStorage.getItem('animeHistory') || '[]');
+  usersDB=JSON.parse(localStorage.getItem('manganime_users')||'[]');
+  let storedUser=JSON.parse(localStorage.getItem('manganime_currentUser')||'null');
+  if(storedUser){ let found=usersDB.find(u=>u.username===storedUser.username); if(found) currentUser={...found}; else currentUser=null; }
+  watchHistory=JSON.parse(localStorage.getItem('animeHistory')||'[]');
   loadFav();
   loadGiftCodes();
   updateUserUI();
+  renderAnimeList('all');
+  startBanner();
   refreshSignBtn();
-
-  // ---------- 事件绑定（确保底部导航有效） ----------
-  document.querySelectorAll('.back-home').forEach(el => el.addEventListener('click', () => navigateTo('homePage')));
-  document.querySelectorAll('.back-user').forEach(el => el.addEventListener('click', () => navigateTo('userPage')));
-  document.getElementById('searchIcon')?.addEventListener('click', () => navigateTo('searchPage'));
-  document.getElementById('historyHeaderIcon')?.addEventListener('click', () => navigateTo('historyPage'));
-  document.getElementById('searchBtn')?.addEventListener('click', () => {
-    let kw = document.getElementById('searchInput').value.trim().toLowerCase();
-    let res = animeDB.filter(a => a.title.toLowerCase().includes(kw));
-    document.getElementById('searchResults').innerHTML = res.map(a => `<div class="flex gap-3 bg-white p-3 rounded-xl cursor-pointer" data-id="${a.id}"><img src="${a.cover}" class="w-14 h-20 object-cover rounded"><div><h4>${a.title}</h4><p>${a.category}</p></div></div>`).join('') || '<div class="text-center text-gray-400">未找到</div>';
-    document.querySelectorAll('#searchResults .cursor-pointer').forEach(el => el.addEventListener('click', () => openPlay(parseInt(el.dataset.id))));
-  });
-  document.getElementById('detailBtn')?.addEventListener('click', () => {
-    if (currentAnime) {
-      document.getElementById('detailTitle').innerText = currentAnime.title;
-      document.getElementById('detailCategory').innerText = currentAnime.category;
-      document.getElementById('detailYear').innerText = currentAnime.year;
-      document.getElementById('detailDirector').innerText = currentAnime.director;
-      document.getElementById('detailRating').innerText = currentAnime.rating;
-      document.getElementById('detailDesc').innerText = currentAnime.desc;
-      document.getElementById('detailModal').classList.add('show');
-    }
-  });
-  document.getElementById('postCommentBtn')?.addEventListener('click', postComment);
-  document.getElementById('goMembershipBtn')?.addEventListener('click', () => navigateTo('membershipPage'));
-  document.getElementById('loginBtn')?.addEventListener('click', handleLogin);
-  document.getElementById('registerBtn')?.addEventListener('click', handleRegister);
-  document.getElementById('logoutBtn')?.addEventListener('click', handleLogout);
-  document.getElementById('saveProfileBtn')?.addEventListener('click', saveProfile);
-  document.getElementById('cancelEditBtn')?.addEventListener('click', () => toggleEditProfile(false));
-  document.getElementById('uploadAvatarBtn')?.addEventListener('click', () => document.getElementById('avatarFileInput').click());
-  document.getElementById('avatarFileInput')?.addEventListener('change', (e) => {
-    if (e.target.files[0]) {
-      let reader = new FileReader();
-      reader.onload = ev => {
-        let img = new Image();
-        img.onload = () => {
-          let canvas = document.createElement('canvas');
-          canvas.width = 150;
-          canvas.height = 150;
-          let ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, 150, 150);
-          currentUser.avatar = canvas.toDataURL('image/jpeg', 0.7);
-          saveUserToDB();
-          updateUserUI();
-          showToast('头像已更新');
-        };
-        img.src = ev.target.result;
-      };
-      reader.readAsDataURL(e.target.files[0]);
-    }
-  });
-  document.querySelectorAll('.edit-profile-trigger').forEach(el => el.addEventListener('click', () => toggleEditProfile()));
-  document.querySelector('.goto-history')?.addEventListener('click', () => navigateTo('historyPage'));
-  document.querySelector('.goto-favorites')?.addEventListener('click', () => navigateTo('favoritesPage'));
-  document.querySelector('.goto-membership')?.addEventListener('click', () => navigateTo('membershipPage'));
-  document.querySelector('.goto-task')?.addEventListener('click', () => navigateTo('taskPage'));
-  document.querySelector('.goto-comment-manage')?.addEventListener('click', () => navigateTo('commentManagePage'));
-  document.querySelector('.goto-code-manage')?.addEventListener('click', () => navigateTo('codeManagePage'));
-  document.querySelector('.open-about')?.addEventListener('click', () => document.getElementById('aboutModal').classList.add('show'));
-  document.querySelector('.close-about')?.addEventListener('click', () => document.getElementById('aboutModal').classList.remove('show'));
-  document.querySelector('.close-detail')?.addEventListener('click', () => document.getElementById('detailModal').classList.remove('show'));
-  document.getElementById('aboutModal')?.addEventListener('click', (e) => {
-    if (e.target === document.getElementById('aboutModal')) document.getElementById('aboutModal').classList.remove('show');
-  });
-  document.getElementById('detailModal')?.addEventListener('click', (e) => {
-    if (e.target === document.getElementById('detailModal')) document.getElementById('detailModal').classList.remove('show');
-  });
-  document.querySelectorAll('.exchange-btn').forEach(btn => {
-    btn.addEventListener('click', () => exchangeMembership(parseInt(btn.dataset.days), parseInt(btn.dataset.cost)));
-  });
-  document.querySelector('.to-register')?.addEventListener('click', () => navigateTo('registerPage'));
-  document.querySelector('.to-login')?.addEventListener('click', () => navigateTo('loginPage'));
-  document.getElementById('checkinBtn')?.addEventListener('click', () => { if (checkSign()) refreshSignBtn(); });
-  document.getElementById('addCoinsBtn')?.addEventListener('click', addAdminCoins);
-  document.getElementById('redeemBtn')?.addEventListener('click', handleRedeem);
-  document.getElementById('exportDataBtn')?.addEventListener('click', exportUserData);
-  document.getElementById('importDataBtn')?.addEventListener('click', () => { document.getElementById('importFileInput')?.click(); });
-  document.getElementById('importFileInput')?.addEventListener('change', (e) => {
-    if (e.target.files.length > 0) importUserData(e.target.files[0]);
-    e.target.value = '';
-  });
-  document.getElementById('generateCodeBtn')?.addEventListener('click', () => {
-    let value = document.getElementById('codeValueInput').value;
-    let code = generateRandomCode(8);
-    addNewCode(code, value);
-  });
-  document.getElementById('manualAddCodeBtn')?.addEventListener('click', () => {
-    let value = document.getElementById('codeValueInput').value;
-    let custom = document.getElementById('customCodeInput').value.trim().toUpperCase();
-    if (!custom) { showToast('请输入自定义卡密'); return; }
-    addNewCode(custom, value);
-    document.getElementById('customCodeInput').value = '';
-  });
-  document.getElementById('confirmCustomCodeBtn')?.addEventListener('click', () => {
-    let value = document.getElementById('codeValueInput').value;
-    let custom = document.getElementById('customCodeInput').value.trim().toUpperCase();
-    if (!custom) { showToast('请输入卡密'); return; }
-    addNewCode(custom, value);
-    document.getElementById('customCodeInput').value = '';
-  });
-  document.getElementById('searchInput')?.addEventListener('input', () => {
-    let kw = document.getElementById('searchInput').value.trim().toLowerCase();
-    let res = animeDB.filter(a => a.title.toLowerCase().includes(kw));
-    document.getElementById('searchResults').innerHTML = res.map(a => `<div class="flex gap-3 bg-white p-3 rounded-xl cursor-pointer" data-id="${a.id}"><img src="${a.cover}" class="w-14 h-20 object-cover rounded"><div><h4>${a.title}</h4><p>${a.category}</p></div></div>`).join('') || '<div class="text-center text-gray-400">未找到</div>';
-    document.querySelectorAll('#searchResults .cursor-pointer').forEach(el => el.addEventListener('click', () => openPlay(parseInt(el.dataset.id))));
-  });
-  document.querySelectorAll('#tabContainer .tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-      document.querySelectorAll('#tabContainer .tab').forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
-      renderAnimeList(tab.dataset.cat);
-    });
-  });
-  // 底部导航事件监听
-  document.querySelectorAll('.bottom-nav .nav-item').forEach(item => {
-    item.addEventListener('click', () => navigateTo(item.dataset.page));
-  });
+  // 事件绑定
+  document.querySelectorAll('.back-home').forEach(el=>el.addEventListener('click',()=>navigateTo('homePage')));
+  document.querySelectorAll('.back-user').forEach(el=>el.addEventListener('click',()=>navigateTo('userPage')));
+  document.getElementById('searchIcon')?.addEventListener('click',()=>navigateTo('searchPage'));
+  document.getElementById('historyHeaderIcon')?.addEventListener('click',()=>navigateTo('historyPage'));
+  document.getElementById('searchBtn')?.addEventListener('click',()=>{ let kw=document.getElementById('searchInput').value.trim().toLowerCase(); let res=animeDB.filter(a=>a.title.toLowerCase().includes(kw)); document.getElementById('searchResults').innerHTML=res.map(a=>`<div class="flex gap-3 bg-white p-3 rounded-xl cursor-pointer" data-id="${a.id}"><img src="${a.cover}" class="w-14 h-20 object-cover rounded"><div><h4>${a.title}</h4><p>${a.category}</p></div></div>`).join('')||'<div class="text-center">未找到</div>'; document.querySelectorAll('#searchResults .cursor-pointer').forEach(el=>el.addEventListener('click',()=>openPlay(parseInt(el.dataset.id)))); });
+  document.getElementById('detailBtn')?.addEventListener('click',()=>{ if(currentAnime){ document.getElementById('detailTitle').innerText=currentAnime.title; document.getElementById('detailCategory').innerText=currentAnime.category; document.getElementById('detailYear').innerText=currentAnime.year; document.getElementById('detailDirector').innerText=currentAnime.director; document.getElementById('detailRating').innerText=currentAnime.rating; document.getElementById('detailDesc').innerText=currentAnime.desc; document.getElementById('detailModal').classList.add('show'); } });
+  document.getElementById('postCommentBtn')?.addEventListener('click',postComment);
+  document.getElementById('goMembershipBtn')?.addEventListener('click',()=>navigateTo('membershipPage'));
+  document.getElementById('loginBtn')?.addEventListener('click',handleLogin);
+  document.getElementById('registerBtn')?.addEventListener('click',handleRegister);
+  document.getElementById('logoutBtn')?.addEventListener('click',handleLogout);
+  document.getElementById('saveProfileBtn')?.addEventListener('click',saveProfile);
+  document.getElementById('cancelEditBtn')?.addEventListener('click',()=>toggleEditProfile(false));
+  document.getElementById('uploadAvatarBtn')?.addEventListener('click',()=>document.getElementById('avatarFileInput').click());
+  document.getElementById('avatarFileInput')?.addEventListener('change',(e)=>{ if(e.target.files[0]){ let reader=new FileReader(); reader.onload=ev=>{ let img=new Image(); img.onload=()=>{ let canvas=document.createElement('canvas'),ctx=canvas.getContext('2d'); canvas.width=150; canvas.height=150; ctx.drawImage(img,0,0,150,150); currentUser.avatar=canvas.toDataURL('image/jpeg',0.7); saveUserToDB(); updateUserUI(); showToast('头像已更新'); }; img.src=ev.target.result; }; reader.readAsDataURL(e.target.files[0]); } });
+  document.querySelectorAll('.edit-profile-trigger').forEach(el=>el.addEventListener('click',()=>toggleEditProfile()));
+  document.querySelector('.goto-history')?.addEventListener('click',()=>navigateTo('historyPage'));
+  document.querySelector('.goto-favorites')?.addEventListener('click',()=>navigateTo('favoritesPage'));
+  document.querySelector('.goto-membership')?.addEventListener('click',()=>navigateTo('membershipPage'));
+  document.querySelector('.goto-task')?.addEventListener('click',()=>navigateTo('taskPage'));
+  document.querySelector('.goto-comment-manage')?.addEventListener('click',()=>navigateTo('commentManagePage'));
+  document.querySelector('.goto-code-manage')?.addEventListener('click',()=>navigateTo('codeManagePage'));
+  document.querySelector('.open-about')?.addEventListener('click',()=>document.getElementById('aboutModal').classList.add('show'));
+  document.querySelector('.close-about')?.addEventListener('click',()=>document.getElementById('aboutModal').classList.remove('show'));
+  document.querySelector('.close-detail')?.addEventListener('click',()=>document.getElementById('detailModal').classList.remove('show'));
+  document.getElementById('aboutModal')?.addEventListener('click',(e)=>{ if(e.target===document.getElementById('aboutModal')) document.getElementById('aboutModal').classList.remove('show'); });
+  document.getElementById('detailModal')?.addEventListener('click',(e)=>{ if(e.target===document.getElementById('detailModal')) document.getElementById('detailModal').classList.remove('show'); });
+  document.querySelectorAll('.exchange-btn').forEach(btn=>{ btn.addEventListener('click',()=>exchangeMembership(parseInt(btn.dataset.days),parseInt(btn.dataset.cost))); });
+  document.querySelector('.to-register')?.addEventListener('click',()=>navigateTo('registerPage'));
+  document.querySelector('.to-login')?.addEventListener('click',()=>navigateTo('loginPage'));
+  document.getElementById('checkinBtn')?.addEventListener('click',()=>{ if(checkSign()) refreshSignBtn(); });
+  document.getElementById('addCoinsBtn')?.addEventListener('click',addAdminCoins);
+  document.getElementById('redeemBtn')?.addEventListener('click',handleRedeem);
+  // 卡密管理按钮
+  document.getElementById('generateCodeBtn')?.addEventListener('click',()=>{ let value = document.getElementById('codeValueInput').value; let code = generateRandomCode(8); addNewCode(code, value); });
+  document.getElementById('manualAddCodeBtn')?.addEventListener('click',()=>{ let value = document.getElementById('codeValueInput').value; let custom = document.getElementById('customCodeInput').value.trim().toUpperCase(); if(!custom){ showToast('请输入自定义卡密'); return; } addNewCode(custom, value); document.getElementById('customCodeInput').value=''; });
+  document.getElementById('confirmCustomCodeBtn')?.addEventListener('click',()=>{ let value = document.getElementById('codeValueInput').value; let custom = document.getElementById('customCodeInput').value.trim().toUpperCase(); if(!custom){ showToast('请输入卡密'); return; } addNewCode(custom, value); document.getElementById('customCodeInput').value=''; });
+  document.getElementById('searchInput')?.addEventListener('input',()=>{ let kw=document.getElementById('searchInput').value.trim().toLowerCase(); let res=animeDB.filter(a=>a.title.toLowerCase().includes(kw)); document.getElementById('searchResults').innerHTML=res.map(a=>`<div class="flex gap-3 bg-white p-3 rounded-xl cursor-pointer" data-id="${a.id}"><img src="${a.cover}" class="w-14 h-20 object-cover rounded"><div><h4>${a.title}</h4><p>${a.category}</p></div></div>`).join('')||'<div class="text-center">未找到</div>'; document.querySelectorAll('#searchResults .cursor-pointer').forEach(el=>el.addEventListener('click',()=>openPlay(parseInt(el.dataset.id)))); });
+  document.querySelectorAll('#tabContainer .tab').forEach(tab=>{ tab.addEventListener('click',()=>{ document.querySelectorAll('#tabContainer .tab').forEach(t=>t.classList.remove('active')); tab.classList.add('active'); renderAnimeList(tab.dataset.cat); }); });
+  document.querySelectorAll('.bottom-nav .nav-item').forEach(item=>{ item.addEventListener('click',()=>navigateTo(item.dataset.page)); });
 });
 </script>
 </body>
